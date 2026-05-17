@@ -357,8 +357,8 @@
 </footer>
 
 <script>
-    // --- URL API ---
-    const API_URL = "https://script.googleusercontent.com/a/macros/moe-dl.edu.my/echo?user_content_key=AUkAhnT5vzAKs3Bka2DiKdsqXyWb_srAqBzGEelM6njiNoXk5gzTFLfBOTwYhVjh5Iogb_F-v85Wj41smocG-V5iVjCvOQ5Hki6xxPcELeCr2BLgz0Nu8oEJA3grdpzUv4k4vWUZja9WVNAIVv_lEUy8fZaY1ha2m2FuhtMRzIN1fxh6HW-Ek6bA-WxYyxyr860mIsmnzCBelCxqMhpSJEioTAxxl8VSI09JvWQn4SYIRrGqveJLjXluExbhirJOgn9vrkTAOhiePsWl_Nedk2nVxBuzJN2Wb1gn-Z-nwsueirN30I35GZlc&lib=M0fvJFPirOC7_DMBmDgzKefZWyKcowevi";
+    // --- URL API (SILA PASTIKAN ID SCRIPT INI BETUL DAN BERAKHIR DENGAN /exec) ---
+    const ONLINE_ABSENCE_API_URL = "https://script.google.com/a/macros/moe-dl.edu.my/s/PASTE_ID_SCRIPT_ANDA_DI_SINI/exec";
 
     // --- DATA SETUP (SENARAI NAMA PENUH) ---
     const TEACHER_LIST = [
@@ -1124,10 +1124,11 @@ BIL,NAMA GURU,ANALISIS BILANGAN MENGAJAR,,,,,,
         updateUIAfterAdd();
     }
 
-    // --- FUNGSI JSONP UNTUK GOOGLE APPS SCRIPT ---
+    // --- FUNGSI JSONP ---
     function fetchJsonp(url) {
         return new Promise((resolve, reject) => {
             const callbackName = "jsonpCallback_" + Date.now();
+            const script = document.createElement("script");
 
             window[callbackName] = function(data) {
                 delete window[callbackName];
@@ -1135,8 +1136,8 @@ BIL,NAMA GURU,ANALISIS BILANGAN MENGAJAR,,,,,,
                 resolve(data);
             };
 
-            const script = document.createElement("script");
             script.src = url + (url.includes("?") ? "&" : "?") + "callback=" + callbackName;
+
             script.onerror = function() {
                 delete window[callbackName];
                 script.remove();
@@ -1147,7 +1148,7 @@ BIL,NAMA GURU,ANALISIS BILANGAN MENGAJAR,,,,,,
         });
     }
 
-    // --- FETCH ONLINE API LOGIC (UPDATED WITH JSONP) ---
+    // --- FETCH ONLINE API LOGIC (MENGGUNAKAN JSONP) ---
     async function fetchOnlineData() {
         const dateVal = document.getElementById('inputDate').value;
         if (!dateVal) { 
@@ -1161,8 +1162,7 @@ BIL,NAMA GURU,ANALISIS BILANGAN MENGAJAR,,,,,,
         btn.disabled = true;
 
         try {
-            // Menggunakan fungsi fetchJsonp yang dimintak
-            const data = await fetchJsonp(API_URL);
+            const data = await fetchJsonp(ONLINE_ABSENCE_API_URL);
             
             // Tapis berdasarkan tarikh dan status "PERLU GANTI"
             const filteredData = data.filter(item => {
