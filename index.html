@@ -1205,14 +1205,14 @@ BIL,NAMA GURU,ANALISIS BILANGAN MENGAJAR,,,,,,
                 alert("Nama guru tidak sepadan dengan data sistem.");
             }
 
-        } catch (error) {
-            console.error(error);
-            alert("Ralat mengambil data online. Sistem mesti masih boleh digunakan secara manual jika tiada internet.");
-        } finally {
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-        }
-    }
+       catch (error) {
+  alert("Ralat sebenar: " + error.message);
+  console.error(error);
+} finally {
+  btn.innerHTML = originalText;
+  btn.disabled = false;
+}
+}
 
     function updateUIAfterAdd() {
         renderAbsentTable();
