@@ -1,0 +1,1684 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem e-Relief - SK Taman Nusa Perintis 1</title>
+    
+    <!-- Import Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- LIBRARY PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+    <style>
+        :root {
+            --primary-purple: #4a0072;
+            --secondary-purple: #7a1fa2;
+            --bg-color: #f3f4f6;
+            --text-color: #333;
+            --warning-red: #d32f2f;
+            --success-green: #2e7d32;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            color: var(--text-color);
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, #240b36 0%, #4a0072 100%);
+            color: white;
+            padding: 1.5rem 1rem;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .logo-img {
+            width: 90px;
+            height: auto;
+            margin-bottom: 5px;
+            border-radius: 50%;
+            background: white;
+            padding: 5px;
+        }
+
+        h1 { margin: 5px 0 0; font-size: 1.6rem; font-weight: 700; }
+        h2 { margin: 0; font-size: 0.9rem; font-weight: 400; opacity: 0.9; }
+
+        /* Container */
+        .container {
+            max-width: 1100px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        /* Card Styles */
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 1.5rem;
+            border-left: 5px solid var(--primary-purple);
+        }
+
+        .section-header {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary-purple);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.5rem;
+        }
+
+        /* Alerts */
+        .alert-box {
+            background-color: #ffebee;
+            color: var(--warning-red);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border: 1px solid #ffcdd2;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+        }
+
+        /* Form Grid */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 0.3rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.6rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+        .form-control:focus { outline: none; border-color: var(--secondary-purple); }
+
+        /* Buttons */
+        .btn {
+            display: inline-block;
+            padding: 0.7rem 1.2rem;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        .btn-full { width: 100%; margin-top: 1rem; }
+        .btn-primary { background: var(--primary-purple); color: white; }
+        .btn-success { background: #10b981; color: white; }
+        .btn-online { background: #0284c7; color: white; }
+        .btn-danger { background: #ef4444; color: white; padding: 0.3rem 0.6rem; font-size: 0.8rem; }
+        .btn-pdf { background: #dc2626; color: white; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        
+        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        /* Tables */
+        .table-responsive { overflow-x: auto; margin-top: 1rem; border: 1px solid #eee; border-radius: 6px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        th { background: #f8f9fa; color: #444; font-weight: 600; text-align: left; padding: 10px; }
+        td { padding: 10px; border-top: 1px solid #eee; vertical-align: middle; }
+        
+        /* Result Box */
+        .result-box {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border: 1px solid #e5e7eb;
+        }
+        .result-title {
+            background: #eef2ff;
+            color: var(--primary-purple);
+            padding: 10px 15px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            border-bottom: 1px solid #e0e7ff;
+        }
+
+        select.relief-select {
+            width: 100%;
+            padding: 6px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        
+        select.relief-select:disabled {
+            background-color: #e0e0e0;
+            color: #888;
+            cursor: not-allowed;
+        }
+
+        /* Toggle Switch */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 20px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--success-green); }
+        input:checked + .slider:before { transform: translateX(20px); }
+        
+        .status-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #666;
+        }
+
+        .slot-badge {
+            font-weight: 700;
+            color: var(--primary-purple);
+            display: block;
+            margin-bottom: 2px;
+            font-size: 0.85rem;
+        }
+
+        .col-slot {
+            font-weight: 700;
+            color: var(--primary-purple);
+            text-align: center;
+            background-color: #fcfaff;
+        }
+
+        /* Dropdown options styling */
+        option.opt-overload { color: #d32f2f; font-weight: bold; }
+        option.opt-good { color: #2e7d32; font-weight: bold; }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <img src="https://i.postimg.cc/4Nbvxkkt/Lencana-Sekolah-Kebangsaan-Taman-Nusa-Perintis.jpg" alt="Logo Sekolah" class="logo-img" crossorigin="anonymous">
+    <h1>Jadual Guru Ganti</h1>
+    <h2>SK Taman Nusa Perintis 1 (Sesi Petang)</h2>
+</header>
+
+<div class="container">
+    
+    <!-- BAHAGIAN 1: Input Data -->
+    <div class="card">
+        <div class="section-header">📋 Langkah 1: Masukkan Data Guru Tidak Hadir</div>
+        
+        <div id="highAbsentAlert" class="alert-box" style="display:none;">
+            ⚠️ <strong>AMARAN:</strong> Bilangan guru tidak hadir melebihi 10 orang. Sistem akan memasukkan guru yang beban tinggi sebagai calon ganti.
+        </div>
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Tarikh</label>
+                <input type="date" id="inputDate" class="form-control" onchange="detectDay()">
+            </div>
+            <div class="form-group">
+                <label>Hari</label>
+                <input type="text" id="inputDay" class="form-control" readonly style="background-color: #f9f9f9; font-weight:bold;">
+            </div>
+            <div class="form-group">
+                <label>Nama Guru</label>
+                <select id="inputTeacher" class="form-control">
+                    <option value="">-- Pilih Guru --</option>
+                    <!-- JavaScript akan isi senarai ini -->
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Sebab</label>
+                <select id="inputReason" class="form-control">
+                    <option>Cuti Sakit (MC)</option>
+                    <option>Cuti Rehat Khas (CRK)</option>
+                    <option>Cuti Tanpa Rekod</option>
+                    <option>Cuti Bersalin</option>
+                    <option>Kursus / Bengkel</option>
+                    <option>Mesyuarat Luar</option>
+                    <option>Guru Pengiring</option>
+                    <option>Hal Kecemasan</option>
+                    <option>Kelas Intervensi</option>
+                    <option>Lain-lain</option>
+                </select>
+            </div>
+        </div>
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-top: 1rem;">
+            <button class="btn btn-primary" onclick="addAbsentee()">+ Tambah Ke Senarai</button>
+            <button id="btnFetchOnline" class="btn btn-online" onclick="fetchOnlineData()">☁️ Ambil Data Online</button>
+        </div>
+        <div id="onlineStatus" style="display:none; margin-top:0.8rem; padding:10px; border-radius:8px; background:#eef6ff; color:#075985; font-size:0.9rem; border:1px solid #bae6fd;"></div>
+
+        <!-- Senarai Guru Tidak Hadir -->
+        <div class="table-responsive" id="absentContainer" style="display:none; margin-top:1.5rem;">
+            <div style="padding:10px; font-weight:600; color:#4a0072; text-align:right;">
+                Jumlah Tidak Hadir: <span id="absentCount">0</span>
+            </div>
+            <table id="absentTable">
+                <thead>
+                    <tr>
+                        <th>Nama Guru</th>
+                        <th>Sebab</th>
+                        <th>Tindakan</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- BAHAGIAN 2: Jana Jadual -->
+    <div class="card" id="step2" style="display:none;">
+        <div class="section-header">⚙️ Langkah 2: Jana Jadual Ganti</div>
+        <p style="font-size:0.9rem; color:#666; margin-top:0;">
+            Sistem akan mengelakkan pertindihan waktu secara automatik. Anda boleh memilih untuk tidak mengganti kelas tertentu.
+        </p>
+        <button class="btn btn-success btn-full" onclick="generateRelief()">🚀 Jana Cadangan Jadual</button>
+    </div>
+
+    <!-- BAHAGIAN 3: Hasil & PDF -->
+    <div id="resultsArea"></div>
+
+    <div id="pdfArea" style="display:none; text-align: center; margin-bottom: 3rem;">
+        <button class="btn btn-pdf" style="width: auto; padding: 10px 30px; margin: 0 auto;" onclick="generatePDF()">
+            <span>📄 Muat Turun PDF</span>
+        </button>
+        <p style="font-size:0.8rem; color:#888; margin-top:5px;">Pastikan pilihan Guru Ganti di atas dimuktamadkan sebelum muat turun.</p>
+    </div>
+
+</div>
+
+<footer>
+    &copy; 2024 Unit Kurikulum SK Taman Nusa Perintis 1<br>
+    Sistem Pengurusan Guru Ganti Automatik
+</footer>
+
+<script>
+    // --- DATA SETUP (SENARAI NAMA PENUH) ---
+    // Pastikan ejaan di sini sama dengan output akhir yang diingini
+    const TEACHER_LIST = [
+        "ABDUL YAMIN BIN AWANG",
+        "AHMAD FAIZ BIN KHAIRUDDIN",
+        "AISYAH BT UMAR",
+        "ERNA YUSNAZIERA BINTI MANAF",
+        "FARAH TASNIM BT MUHAMAD BASRI",
+        "FARIDAH BINTI MOHAMED",
+        "FATIN NABILA BINTI ABDULLAH",
+        "HAFIZAL BIN JOHARI",
+        "HANIS AQILAH BINTI HISHARUDDIN",
+        "HARIZ DAINAL BIN MAT SUHAIMI",
+        "HARYATI BINTI OTHMAN",
+        "HAZIQAH BINTI AHMAD SHUKRI",
+        "KHAIRUL AZHAR BIN CHOLAN",
+        "MOHANASYRI A/P NANCHAPPAN",
+        "MUHAMMAD ARIF BIN AZLAN",
+        "MUHAMMAD NAJMI BIN AHMAD KHOD",
+        "MUHAMMAD REDHA BIN AZMANI",
+        "MUHAMMAD SUFI BIN ALIAS",
+        "NIK NUR KAMALIAH BINTI RUSLI",
+        "NOR AZRINE BINTI JOHARI",
+        "NORAMIRA BINTI AMIR",
+        "NORHAYATI BINTI SUFIAN",
+        "NUR ALIA SYUHADA BT AZRA’I",
+        "NUR AMIRAH ATIKAH BINTI ABU BAKAR",
+        "NUR ISMAH IZZAH BINTI MOHD RANI",
+        "NURHAZIRAH BT ABDUL MANAN",
+        "NURUL FATHEHAH BINTI HAMIDON",
+        "NURUL SHAHADA BINTI OTHMAN",
+        "NURUL ZAFIRA BINTI ZAKARIAH",
+        "PUNITHA A/P ANPALAGIAN",
+        "RADHIAH BINTI ABD RAHMAN",
+        "SITI AMINAH BT A RAHIM",
+        "SITI FATIMAH BINTI MAHAMMAD KHAIRUDDIN",
+        "SITI PAKRIAH BINTI HAJI HASSIM",
+        "SUGANESWARY A/P K.SAKARAN",
+        "UMMI AISHAH BINTI AB MOTALIB",
+        "YASINI A/P CHANGALAI"
+    ];
+
+    const SLOT_TIMES = [
+        "1.00 - 1.30", "1.30 - 2.00", "2.00 - 2.30", "2.30 - 3.00",
+        "3.00 - 3.30", "3.30 - 4.00", "4.00 - 4.30", "4.30 - 5.00",
+        "5.00 - 5.30", "5.30 - 6.00", "6.00 - 6.30"
+    ];
+
+    // DEFINISI MAP NAMA PENDEK KEPADA NAMA PENUH
+    const CSV_MAP = {
+        "YAMIN": "ABDUL YAMIN BIN AWANG",
+        "FAIZ": "AHMAD FAIZ BIN KHAIRUDDIN",
+        "AISYAH": "AISYAH BT UMAR",
+        "ERNA": "ERNA YUSNAZIERA BINTI MANAF",
+        "FARIDAH": "FARIDAH BINTI MOHAMED",
+        "HAFIZAL": "HAFIZAL BIN JOHARI",
+        "HANIS": "HANIS AQILAH BINTI HISHARUDDIN",
+        "HARIZ": "HARIZ DAINAL BIN MAT SUHAIMI",
+        "HARYATI": "HARYATI BINTI OTHMAN",
+        "HAZIQAH": "HAZIQAH BINTI AHMAD SHUKRI",
+        "YASINI": "YASINI A/P CHANGALAI",
+        "KHAIRUL": "KHAIRUL AZHAR BIN CHOLAN",
+        "MOHANA": "MOHANASYRI A/P NANCHAPPAN",
+        "ARIF": "MUHAMMAD ARIF BIN AZLAN",
+        "NAJMI": "MUHAMMAD NAJMI BIN AHMAD KHOD",
+        "REDHA": "MUHAMMAD REDHA BIN AZMANI",
+        "SUFI": "MUHAMMAD SUFI BIN ALIAS",
+        "NIK": "NIK NUR KAMALIAH BINTI RUSLI",
+        "FATIN": "FATIN NABILA BINTI ABDULLAH",
+        "NORAMIRA": "NORAMIRA BINTI AMIR",
+        "AZRINE": "NOR AZRINE BINTI JOHARI",
+        "NORHAYATI": "NORHAYATI BINTI SUFIAN",
+        "ATIKAH": "NUR AMIRAH ATIKAH BINTI ABU BAKAR",
+        "HAZIRAH": "NURHAZIRAH BT ABDUL MANAN",
+        "IZZAH": "NUR ISMAH IZZAH BINTI MOHD RANI",
+        "FATHEHAH": "NURUL FATHEHAH BINTI HAMIDON",
+        "SHAHADA": "NURUL SHAHADA BINTI OTHMAN",
+        "ZAFIRA": "NURUL ZAFIRA BINTI ZAKARIAH",
+        "PUNITHA": "PUNITHA A/P ANPALAGIAN",
+        "RADHIAH": "RADHIAH BINTI ABD RAHMAN",
+        "AMINAH": "SITI AMINAH BT A RAHIM",
+        "FATIMAH": "SITI FATIMAH BINTI MAHAMMAD KHAIRUDDIN",
+        "PAKRIAH": "SITI PAKRIAH BINTI HAJI HASSIM",
+        "SUGANESWARY": "SUGANESWARY A/P K.SAKARAN",
+        "UMMI": "UMMI AISHAH BINTI AB MOTALIB",
+        "FARAH TASNIM": "FARAH TASNIM BT MUHAMAD BASRI",
+        "NUR ALIA S": "NUR ALIA SYUHADA BT AZRA’I"
+    };
+
+    // JADUAL WAKTU BAHARU DARI IMEJ (LENGKAP DENGAN NAMA KELAS)
+    const RAW_SCHEDULE = `
+,ABDUL YAMIN BIN AWANG,,,,,,,,
+,,ISNIN,SELASA,RABU,KHAMIS,JUMAAT
+SLOT 1,1.00 - 1.30,,"PSV (1 TKW)",,"SN (1 TBH)"
+SLOT 2,1.30 - 2.00,"PK (2 TGH)","PSV (1 TKW)",,"SN (1 TBH)"
+SLOT 3,2.00 - 2.30,"SN (1 TKN)",,,,
+SLOT 4,2.30 - 3.00,"PK (1 TKD)",,,,"SN (1 TKN)"
+SLOT 5,3.00 - 3.30,,,,,"SN (1 TKN)"
+SLOT 6,3.30 - 4.00,,"PSV (1 TLS)",,,
+SLOT 7,4.00 - 4.30,"PSV (2 TBH)","PSV (1 TLS)",,,
+SLOT 8,4.30 - 5.00,"PSV (2 TBH)","SN (1 TBH)",,"PJ (2 TGH)",
+SLOT 9,5.00 - 5.30,,,,,"PJ (1 TBH)"
+SLOT 10,5.30 - 6.00,"PK (1 TBH)","PJ (1 TKD)","PJ (1 TBH)","PJ (1 TKD)",
+SLOT 11,6.00 - 6.30,,,"PJ (2 TGH)",,
+,,,,,,,,
+,AHMAD FAIZ BIN KHAIRUDDIN,,,,,,,,
+,,ISNIN,SELASA,RABU,KHAMIS,JUMAAT
+SLOT 1,1.00 - 1.30,,"UL (3 TGH)",,"QR (3 TGH)",
+SLOT 2,1.30 - 2.00,,"UL (3 TGH)",,"QR (3 TGH)",
+SLOT 3,2.00 - 2.30,,,"SN (2 TKD)",,
+SLOT 4,2.30 - 3.00,"JW (3 TGH)",,"SN (2 TKD)","SN (2 TKD)",
+SLOT 5,3.00 - 3.30,,,"SN (2 TKN))",,"SN (2 TBH)"
+SLOT 6,3.30 - 4.00,"SN (2 TBH)","PK (3 TLS)","SN (2 TKN))",,"SN (2 TBH)"
+SLOT 7,4.00 - 4.30,,,,,,
+SLOT 8,4.30 - 5.00,,"SN (2 TKN)","PJ (3 TKW)","PJ (3 TLS)","PJ (3 TKW)"
+SLOT 9,5.00 - 5.30,,,,,"PJ (3 TLS)"
+SLOT 10,5.30 - 6.00,"PK (3 TKW)","TSMK (3 TGH)",,"TSMK (3 TGH)",
+SLOT 11,6.00 - 6.30,,,,,,
+,,,,,,,,
+,AISYAH BT UMAR,,,,,,,,
+,,ISNIN,SELASA,RABU,KHAMIS,JUMAAT
+SLOT 1,1.00 - 1.30,,,,"MT (2 TBH)",
+SLOT 2,1.30 - 2.00,"TSMK (1 TBH)",,,"MT (2 TBH)",
+SLOT 3,2.00 - 2.30,,"QR (1 TBH)",,"MZ (2 TKN)",
+SLOT 4,2.30 - 3.00,,"QR (1 TBH)",,,"SN (2 TLS)"
+SLOT 5,3.00 - 3.30,,,"SN (2 TLS)",,
+SLOT 6,3.30 - 4.00,"QR (1 TBH)","MT (2 TBH)","SN (2 TLS)",,"JW (1 TBH)"
+SLOT 7,4.00 - 4.30,"QR (1 TBH)","MT (2 TBH)",,,
+SLOT 8,4.30 - 5.00,"SN (3 TKD)","SN (3 TKD)",,"MZ (3 TKW)",
+SLOT 9,5.00 - 5.30,,"SN (3 TKD)",,"PSV (3 TKN)",
+SLOT 10,5.30 - 6.00,,,,"PSV (3 TKN)","MT (2 TBH)"
+SLOT 11,6.00 - 6.30,,,"TSMK (1 TBH)",,
+,,,,,,,,
+,ERNA YUSNAZIERA BINTI MANAF,,,,,,,,
+,,ISNIN,SELASA,RABU,KHAMIS,JUMAAT
+SLOT 1,1.00 - 1.30,,,,"PSV (2 TKN)",
+SLOT 2,1.30 - 2.00,,,,"PSV (2 TKN)",
+SLOT 3,2.00 - 2.30,"BI (2 TBH)","BI (2 TBH)",,"BI (2 TBH)",
+SLOT 4,2.30 - 3.00,"BI (2 TBH)","BI (2 TBH)",,"BI (2 TBH)","PSV (1 TKD)"
+SLOT 5,3.00 - 3.30,,,"BI (2 TBH)",,"PSV (1 TKD)"
+SLOT 6,3.30 - 4.00,"BI (2 TLS)","BI (2 TLS)","BI (2 TBH)",,
+SLOT 7,4.00 - 4.30,"BI (2 TLS)","BI (2 TLS)",,,
+SLOT 8,4.30 - 5.00,,,"BI (2 TLS)","BI (2 TLS)",
+SLOT 9,5.00 - 5.30,"PSV (1 TKN)",,"BI (2 TLS)","BI (2 TLS)",
+SLOT 10,5.30 - 6.00,"PSV (1 TKN)",,"MZ (2 TGH)",,
+SLOT 11,6.00 - 6.30,,,,,,
+,,,,,,,,
+,FARIDAH BINTI MOHAMED,,,,,,,,
+,,ISNIN,SELASA,RABU,KHAMIS,JUMAAT
+SLOT 1,1.00 - 1.30,,,,,,
+SLOT 2,1.30 - 2.00,"TSMK (2 TLS)",,,,
+SLOT 3,2.00 - 2.30,,"QR (2 TLS)",,,
+SLOT 4,2.30 - 3.00,,"QR (2 TLS)",,"TSMK (2 TLS)","BA (3 TKW)"
+SLOT 5,3.00 - 3.30,,,"PSV (1 TBH)",,
+SLOT 6,3.30 - 4.00,"BA (3 TKN)",,"PSV (1 TBH)","PSV (1 TGH)",
+SLOT 7,4.00 - 4.30,"BA (3 TKN)",,,"PSV (1 TGH)",
+SLOT 8,4.30 - 5.00,,,"BA (3 TKN)",,"BA (3 TKD)"
+SLOT 9,5.00 - 5.30,"BA (3 TKD)",,,"BA (3 TKW)",
+SLOT 10,5.30 - 6.00,"BA (3 TKD)",,"UL (2 TLS)","BA (3 TKW)","JW (2 TLS)"
+SLOT 11,6.00 - 6.30,,,"UL (2 TLS)",,
+,,,,,,,,
+,HAFIZAL BIN JOHARI,,,,,,,,
+,,ISNIN,SELASA,RABU,KHAMIS,JUMAAT
+SLOT 1,1.00 - 1.30,,"MOR (3 TGH/TBH)",,"MOR (3 TGH/TBH)",
+SLOT 2,1.30 - 2.00,,"MOR (3 TGH/TBH)",,"MOR (3 TGH/TBH)",
+SLOT 3,2.00 - 2.30,,,"MOR (2 TGH/TBH)",,
+SLOT 4,2.30 - 3.00,"MOR (3 TGH/TBH)",,"MOR (2 TGH/TBH)",,"MOR (2 TGH/TBH)"
+SLOT 5,3.00 - 3.30,,,,,,
+SLOT 6,3.30 - 4.00,,,,"MOR (2 TGH/TBH)",
+SLOT 7,4.00 - 4.30,,,,"MOR (2 TGH/TBH)",
+SLOT 8,4.30 - 5.00,,,,,,
+SLOT 9,5.00 - 5.30,,,,,,
+SLOT 10,5.30 - 6.00,,,,,,
+SLOT 11,6.00 - 6.30,,,,,,
+,,,,,,,,
+,HANIS AQILAH BINTI HISHARUDDIN,,,,,,,,
+,,ISNIN,SELASA,RABU,KHAMIS,JUMAAT
+SLOT 1,1.00 - 1.30,,"QR (1 TKN)",,"PK (3 TKD)",
+SLOT 2,1.30 - 2.00,"BA (3 TGH)","QR (1 TKN)",,,
+SLOT 3,2.00 - 2.30,"BA (3 TGH)",,"UL (1 TKN)","BA (1 TBH)",
+SLOT 4,2.30 - 3.00,"SN (3 TKW)",,"UL (1 TKN)","BA (1 TBH)","SN (3 TBH)"
+SLOT 5,3.00 - 3.30,,,,,,
+SLOT 6,3.30 - 4.00,,,,"SN (3 TKW)","JW (1 TKN)"
+SLOT 7,4.00 - 4.30,,,,"SN (3 TKW)",
+SLOT 8,4.30 - 5.00,"TSMK (1 TKN)","TSMK (1 TKN)","SN (3 TBH)","PJ (3 TKD)",
+SLOT 9,5.00 - 5.30,,"BA (3 TGH)","SN (3 TBH)",,
+SLOT 10,5.30 - 6.00,,"PJ (3 TKD)",,,"BA (1 TBH)"
+SLOT 11,6.00 - 6.30,,,,,,
+,,,,,,,,
+,HARIZ DAINAL BIN MAT SUHAIMI,,,,,,,,
+,,ISNIN,SELASA,RABU,KHAMIS,JUMAAT
+SLOT 1,1.00 - 1.30,,,,"BI (3 TKW)",
+SLOT 2,1.30 - 2.00,,,,"BI (3 TKW)",
+SLOT 3,2.00 - 2.30,,"BI (3 TKN)","BI (3 TKN)","BI (3 TGH)",
+SLOT 4,2.30 - 3.00,,"BI (3 TKN)","BI (3 TKN)","BI (3 TGH)",
+SLOT 5,3.00 - 3.30,,,"BI (3 TGH)",,
+SLOT 6,3.30 - 4.00,,"BI (3 TGH)","BI (3 TGH)","BI (3 TKN)",
+SLOT 7,4.00 - 4.30,"BI (3 TGH)","BI (3 TGH)",,"BI (3 TKN)",
+SLOT 8,4.30 - 5.00,"BI (3 TGH)",,,,
+SLOT 9,5.00 - 5.30,"BI (3 TKN)","BI (3 TKW)","BI (3 TKW)",,"BI (3 TKW)"
+SLOT 10,5.30 - 6.00,"BI (3 TKN)","BI (3 TKW)","BI (3 TKW)",,"BI (3 TKW)"
+SLOT 11,6.00 - 6.30,,,,,,
+,,,,,,,,
+,HARYATI BINTI OTHMAN,,,,,,,,
+,,ISNIN,SELASA,RABU,KHAMIS,JUMAAT
+SLOT 1,1.00 - 1.30,,"UL (3 TBH)",,"QR (3 TBH)",
+SLOT 2,1.30 - 2.00,,"UL (3 TBH)",,"QR (3 TBH)",
+SLOT 3,2.00 - 2.30,,,"PSV (3 TGH)",,
+SLOT 4,2.30 - 3.00,"JW (3 TBH)",,"PSV (3 TGH)","JW (2 TKN)",
+SLOT 5,3.00 - 3.30,,,,,,
+SLOT 6,3.30 - 4.00,"UL (2 TKN)","QR (2 TKN)",,,
+SLOT 7,4.00 - 4.30,"UL (2 TKN)","QR (2 TKN)",,,
+SLOT 8,4.30 - 5.00,,,,,"TSMK (3 TBH)"
+SLOT 9,5.00 - 5.30,,"TSMK (2 TKN)",,"PSV (3 TKD)",
+SLOT 10,5.30 - 6.00,"TSMK (3 TBH)","BA (2 TKD)","BA (2 TKD)","PSV (3 TKD)","TSMK (2 TKN)"
+SLOT 11,6.00 - 6.30,,,"BA (2 TKD)",,
+,,,,,,,,
+,HAZIQAH BINTI AHMAD SHUKRI,,,,,,,,
+,,ISNIN,SELASA,RABU,KHAMIS,JUMAAT
+SLOT 1,1.00 - 1.30,,,,"SN (1 TKD)",
+SLOT 2,1.30 - 2.00,"TSMK (3 TKD)",,,"SN (1 TKD)",
+SLOT 3,2.00 - 2.30,,"SN (3 TGH)","MZ (3 TKD)","QR (1 TKW)",
+SLOT 4,2.30 - 3.00,"TSMK (1 TKW)","SN (3 TGH)","SN (1 TKD)","QR (1 TKW)","TSMK (3 TKD)"
+SLOT 5,3.00 - 3.30,,,"SN (1 TLS)",,
+SLOT 6,3.30 - 4.00,,"MZ (3 TKN)","SN (1 TLS)",,
+SLOT 7,4.00 - 4.30,,,,,,
+SLOT 8,4.30 - 5.00,"UL (1 TKW)",,,,"SN (3 TGH)"
+SLOT 9,5.00 - 5.30,"UL (1 TKW)",,,,
+SLOT 10,5.30 - 6.00,,"JW (1 TKW)",,,"SN (1 TLS)"
+SLOT 11,6.00 - 6.30,,,"TSMK (1 TKW)",,
+,,,,,,,,
+,YASINI A/P CHANGALAI,,,,,,,,
+,,ISNIN,SELASA,RABU,KHAMIS,JUMAAT
+SLOT 1,1.00 - 1.30,,"BI (2 TKW)",,,
+SLOT 2,1.30 - 2.00,"BI (2 TKD)","BI (2 TKW)",,"BI (2 TKD)",
+SLOT 3,2.00 - 2.30,"BI (2 TKD)",,,"BI (2 TKD)",
+SLOT 4,2.30 - 3.00,,,,,,
+SLOT 5,3.00 - 3.30,,,"BI (2 TKW)",,"BI (2 TKD)"
+SLOT 6,3.30 - 4.00,"BI (2 TKW)","BI (2 TKD)","BI (2 TKW)",,"BI (2 TKD)"
+SLOT 7,4.00 - 4.30,"BI (2 TKW)","BI (2 TKD)",,"BI (2 TKW)",
+SLOT 8,4.30 - 5.00,,"BI (2 TGH)","BI (2 TGH)","BI (2 TKW)",
+SLOT 9,5.00 - 5.30,"BI (2 TGH)","BI (2 TGH)","BI (2 TGH)",,"BI (2 TGH)"
+SLOT 10,5.30 - 6.00,"BI (2 TGH)",,,,"BI (2 TGH)"
+SLOT 11,6.00 - 6.30,,,,,
+,,,,,,,,
+,KHAIRUL AZHAR BIN CHOLAN,,,,,,,,
+,,ISNIN,SELASA,RABU,KHAMIS,JUMAAT
+SLOT 1,1.00 - 1.30,,"BI (2 TKN)",,,
+SLOT 2,1.30 - 2.00,"PK (2 TBH)","BI (2 TKN)",,"MT (3 TKD)",
+SLOT 3,2.00 - 2.30,,,,"MT (3 TKD)",
+SLOT 4,2.30 - 3.00,,,"MT (3 TKD)",,
+SLOT 5,3.00 - 3.30,,,,,"MT (3 TBH)"
+SLOT 6,3.30 - 4.00,"MT (3 TBH)","MT (3 TKD)",,,"MT (3 TBH)"
+SLOT 7,4.00 - 4.30,"MT (3 TBH)","MT (3 TKD)",,,
+SLOT 8,4.30 - 5.00,"BI (2 TKN)",,,,"BI (2 TKN)"
+SLOT 9,5.00 - 5.30,"BI (2 TKN)",,"PJ (2 TBH)","PJ (2 TBH)","BI (2 TKN)"
+SLOT 10,5.30 - 6.00,,"MT (3 TBH)","BI (2 TKN)",,
+SLOT 11,6.00 - 6.30,,,"BI (2 TKN)",,
+,,,,,,,,
+,MOHANASYRI A/P NANCHAPPAN,,,,,,,,
+,,ISNIN,SELASA,RABU,KHAMIS,JUMAAT
+SLOT 1,1.00 - 1.30,,,,,,
+SLOT 2,1.30 - 2.00,,,,,,
+SLOT 3,2.00 - 2.30,,"MOR (1 TLS/TGH/TBH)",,"BM (3 TKN)",
+SLOT 4,2.30 - 3.00,,"MOR (1 TLS/TGH/TBH)",,"BM (3 TKN)","BM (3 TKN)"
+SLOT 5,3.00 - 3.30,,,"BM (3 TBH)",,"BM (3 TKN)"
+SLOT 6,3.30 - 4.00,"MOR (1 TLS/TGH/TBH)",,"BM (3 TBH)",,"MOR (1 TLS/TGH/TBH)"
+SLOT 7,4.00 - 4.30,"MOR (1 TLS/TGH/TBH)","BM (3 TKN)",,"BM (3 TBH)",
+SLOT 8,4.30 - 5.00,"BM (3 TBH)","BM (3 TKN)",,"BM (3 TBH)",
+SLOT 9,5.00 - 5.30,"BM (3 TBH)",,,,"BM (3 TBH)"
+SLOT 10,5.30 - 6.00,,"MZ (1 TKN)","BM (3 TKN)",,"BM (3 TBH)"
+SLOT 11,6.00 - 6.30,,,"BM (3 TKN)",,
+,,,,,,,,
+,MUHAMMAD ARIF BIN AZLAN,,,,,,,,
+,,ISNIN,SELASA,RABU,KHAMIS,JUMAAT
+SLOT 1,1.00 - 1.30,,"MT (2 TGH)",,,
+SLOT 2,1.30 - 2.00,"MT (2 TKW)","MT (2 TGH)",,,
+SLOT 3,2.00 - 2.30,"MT (2 TKW)","MT (3 TKW)",,"MT (2 TGH)",
+SLOT 4,2.30 - 3.00,,"MT (3 TKW)",,"MT (2 TGH)","MT (2 TKW)"
+SLOT 5,3.00 - 3.30,,,,,,
+SLOT 6,3.30 - 4.00,,,,"MT (3 TGH)",
+SLOT 7,4.00 - 4.30,,"MT (2 TKW)",,"MT (3 TGH)",
+SLOT 8,4.30 - 5.00,"MT (3 TKW)","MT (2 TKW)",,,"MT (2 TGH)"
+SLOT 9,5.00 - 5.30,"MT (3 TKW)",,"MT (3 TGH)",,"MT (3 TGH)"
+SLOT 10,5.30 - 6.00,"PK (2 TKN)","PJ (2 TKN)",,"PJ (2 TKN)","MT (3 TGH)"
+SLOT 11,6.00 - 6.30,,,"MT (3 TKW)",,
+,,,,,,,,
+,MUHAMMAD NAJMI BIN AHMAD KHOD,,,,,,,,
+,,ISNIN,SELASA,RABU,KHAMIS,JUMAAT
+SLOT 1,1.00 - 1.30,,,,"PK (2 TKD)",
+SLOT 2,1.30 - 2.00,,,,,,
+SLOT 3,2.00 - 2.30,"UL (3 TKN)",,"BM (3 TKW)",,
+SLOT 4,2.30 - 3.00,"UL (3 TKN)",,"BM (3 TKW)",,"PK (3 TGH)"
+SLOT 5,3.00 - 3.30,,,"QR (3 TKN)",,"BM (3 TKW)"
+SLOT 6,3.30 - 4.00,"BM (3 TKW)","BM (3 TKW)","QR (3 TKN)",,"BM (3 TKW)"
+SLOT 7,4.00 - 4.30,"BM (3 TKW)","BM (3 TKW)","PJ (3 TGH)",,
+SLOT 8,4.30 - 5.00,"TSMK (3 TKN)","PJ (3 TGH)",,"TSMK (3 TKN)",
+SLOT 9,5.00 - 5.30,,"JW (3 TKN)",,"PJ (2 TKD)",
+SLOT 10,5.30 - 6.00,,,,,"PJ (2 TKD)"
+SLOT 11,6.00 - 6.30,,,,,,
+,,,,,,,,
+,MUHAMMAD REDHA BIN AZMANI,,,,,,,,
+,,ISNIN,SELASA,RABU,KHAMIS,JUMAAT
+SLOT 1,1.00 - 1.30,,"BM (3 TKD)",,"BM (3 TLS)",
+SLOT 2,1.30 - 2.00,,"BM (3 TKD)",,"BM (3 TLS)",
+SLOT 3,2.00 - 2.30,"BM (3 TKD)","BM (3 TLS)","BM (3 TLS)",,
+SLOT 4,2.30 - 3.00,"BM (3 TKD)","BM (3 TLS)","BM (3 TLS)",,
+SLOT 5,3.00 - 3.30,,,"BM (3 TKD)",,"BM (3 TGH)"
+SLOT 6,3.30 - 4.00,"BM (3 TLS)",,"BM (3 TKD)",,"BM (3 TGH)"
+SLOT 7,4.00 - 4.30,"BM (3 TLS)",,,,
+SLOT 8,4.30 - 5.00,,,,"BM (3 TGH)",
+SLOT 9,5.00 - 5.30,"BM (3 TGH)",,,"BM (3 TGH)","BM (3 TKD)"
+SLOT 10,5.30 - 6.00,"BM (3 TGH)",,"BM (3 TGH)",,"BM (3 TKD)"
+SLOT 11,6.00 - 6.30,,,"BM (3 TGH)",,
+,,,,,,,,
+,MUHAMMAD SUFI BIN ALIAS,,,,,,,,
+,,ISNIN,SELASA,RABU,KHAMIS,JUMAAT
+SLOT 1,1.00 - 1.30,,,,"PK (1 TGH)",
+SLOT 2,1.30 - 2.00,"TSMK (1 TLS)",,,,
+SLOT 3,2.00 - 2.30,,"UL (1 TLS)",,,
+SLOT 4,2.30 - 3.00,"PK (1 TKN)","UL (1 TLS)",,"TSMK (1 TLS)",
+SLOT 5,3.00 - 3.30,,,,,,
+SLOT 6,3.30 - 4.00,"QR (1 TLS)","SN (2 TGH)","SN (2 TGH)",,"JW (1 TLS)"
+SLOT 7,4.00 - 4.30,"QR (1 TLS)","SN (2 TGH)",,,
+SLOT 8,4.30 - 5.00,"SN (2 TKW)",,"PJ (1 TGH)",,"SN (2 TKW)"
+SLOT 9,5.00 - 5.30,,"PJ (1 TKN)",,"PJ (1 TKW)","SN (2 TKW)"
+SLOT 10,5.30 - 6.00,"PK (1 TKW)",,"PJ (1 TKW)","PJ (1 TKN)","PJ (1 TGH)"
+SLOT 11,6.00 - 6.30,,,,,,
+,,,,,,,,
+,NIK NUR KAMALIAH BINTI RUSLI,,,,,,,,
+,,ISNIN,SELASA,RABU,KHAMIS,JUMAAT
+SLOT 1,1.00 - 1.30,,"MT (1 TGH)",,"MT (1 TKW)",
+SLOT 2,1.30 - 2.00,"MT (1 TKW)","MT (1 TGH)",,"MT (1 TKW)",
+SLOT 3,2.00 - 2.30,"MT (1 TKW)","MT (2 TKN)","MT (1 TGH)",,
+SLOT 4,2.30 - 3.00,"MT (2 TKN)","MT (2 TKN)","MT (1 TGH)",,"MT (1 TKW)"
+SLOT 5,3.00 - 3.30,,,,,,
+SLOT 6,3.30 - 4.00,,,,"QR (3 TLS)","TSMK (3 TLS)"
+SLOT 7,4.00 - 4.30,,"UL (3 TLS)",,"QR (3 TLS)",
+SLOT 8,4.30 - 5.00,,"UL (3 TLS)","MT (2 TKN)",,
+SLOT 9,5.00 - 5.30,,,"MT (2 TKN)",,
+SLOT 10,5.30 - 6.00,"TSMK (3 TLS)",,,"MT (1 TGH)","JW (3 TLS)"
+SLOT 11,6.00 - 6.30,,,,,,
+,,,,,,,,
+,FATIN NABILA BINTI ABDULLAH,,,,,,,,
+,,ISNIN,SELASA,RABU,KHAMIS,JUMAAT
+SLOT 1,1.00 - 1.30,,"BM (1 TBH)",,,
+SLOT 2,1.30 - 2.00,,"BM (1 TBH)",,,
+SLOT 3,2.00 - 2.30,"BM (1 TBH)","BM (1 TKN)","BM (1 TBH)","BM (1 TKN)",
+SLOT 4,2.30 - 3.00,"BM (1 TBH)","BM (1 TKN)","BM (1 TBH)","BM (1 TKN)",
+SLOT 5,3.00 - 3.30,,,,,,
+SLOT 6,3.30 - 4.00,,,,"BM (1 TBH)",
+SLOT 7,4.00 - 4.30,,,,"BM (1 TBH)",
+SLOT 8,4.30 - 5.00,"PK (1 TLS)","PJ (1 TLS)",,,
+SLOT 9,5.00 - 5.30,,,"PJ (1 TLS)","PSV (2 TKW)","BM (1 TKN)"
+SLOT 10,5.30 - 6.00,,,"BM (1 TKN)","PSV (2 TKW)","BM (1 TKN)"
+SLOT 11,6.00 - 6.30,,,"BM (1 TKN)",,
+,,,,,,,,
+,NORAMIRA BINTI AMIR,,,,,,,,
+,,ISNIN,SELASA,RABU,KHAMIS,JUMAAT
+SLOT 1,1.00 - 1.30,,"BM (2 TKD)",,,
+SLOT 2,1.30 - 2.00,,"BM (2 TKD)",,"BM (1 TGH)",
+SLOT 3,2.00 - 2.30,"BM (2 TGH)","BM (2 TGH)",,"BM (1 TGH)",
+SLOT 4,2.30 - 3.00,"BM (2 TGH)","BM (2 TGH)",,,
+SLOT 5,3.00 - 3.30,,,,,"BM (2 TGH)"
+SLOT 6,3.30 - 4.00,"BM (2 TKD)","BM (1 TGH)",,"BM (2 TKD)","BM (2 TGH)"
+SLOT 7,4.00 - 4.30,"BM (2 TKD)","BM (1 TGH)",,"BM (2 TKD)",
+SLOT 8,4.30 - 5.00,,,"BM (2 TKD)",,"BM (1 TGH)"
+SLOT 9,5.00 - 5.30,"BM (1 TGH)",,"BM (2 TKD)","BM (2 TGH)","BM (1 TGH)"
+SLOT 10,5.30 - 6.00,"BM (1 TGH)",,,"BM (2 TGH)",
+SLOT 11,6.00 - 6.30,,,,,,
+,,,,,,,,
+,NOR AZRINE BINTI JOHARI,,,,,,,,
+,,ISNIN,SELASA,RABU,KHAMIS,JUMAAT
+SLOT 1,1.00 - 1.30,,,,,,
+SLOT 2,1.30 - 2.00,,,,"BM (1 TLS)",
+SLOT 3,2.00 - 2.30,"BM (1 TLS)","BM (1 TKD)",,"BM (1 TLS)",
+SLOT 4,2.30 - 3.00,"BM (1 TLS)","BM (1 TKD)",,,
+SLOT 5,3.00 - 3.30,,,,,,
+SLOT 6,3.30 - 4.00,,,,,,
+SLOT 7,4.00 - 4.30,,,,,,
+SLOT 8,4.30 - 5.00,"BM (1 TKD)","PJ (2 TLS)","BM (1 TKD)","BM (1 TKD)","BM (1 TLS)"
+SLOT 9,5.00 - 5.30,"BM (1 TKD)","BM (1 TLS)","BM (1 TKD)","BM (1 TKD)","BM (1 TLS)"
+SLOT 10,5.30 - 6.00,"PK (2 TLS)","BM (1 TLS)","PJ (2 TKW)","PJ (2 TLS)","PJ (2 TKW)"
+SLOT 11,6.00 - 6.30,,,"PK (2 TKW)",,
+,,,,,,,,
+,NORHAYATI BINTI SUFIAN,,,,,,,,
+,,ISNIN,SELASA,RABU,KHAMIS,JUMAAT
+SLOT 1,1.00 - 1.30,,,,"BA (2 TKW)",
+SLOT 2,1.30 - 2.00,"QR (1 TKD)",,,"BA (2 TKW)",
+SLOT 3,2.00 - 2.30,"QR (1 TKD)","BA (1 TKW)","TSMK (1 TKD)",,
+SLOT 4,2.30 - 3.00,,"BA (1 TKW)",,"MZ (3 TLS)","BA (2 TKN)"
+SLOT 5,3.00 - 3.30,,,"UL (1 TKD)",,
+SLOT 6,3.30 - 4.00,,"BA (2 TKW)","UL (1 TKD)","BA (2 TKN)","JW (1 TKD)"
+SLOT 7,4.00 - 4.30,,,,"BA (2 TKN)",
+SLOT 8,4.30 - 5.00,,,,,,
+SLOT 9,5.00 - 5.30,,,,,,
+SLOT 10,5.30 - 6.00,"TSMK (1 TKD)","BA (1 TGH)","BA (1 TGH)","BA (1 TKW)",
+SLOT 11,6.00 - 6.30,,,"BA (1 TGH)",,
+,,,,,,,,
+,NUR AMIRAH ATIKAH BINTI ABU BAKAR,,,,,,,,
+,,ISNIN,SELASA,RABU,KHAMIS,JUMAAT
+SLOT 1,1.00 - 1.30,,"MT (3 TKN)",,"MT (3 TKN)",
+SLOT 2,1.30 - 2.00,"MT (3 TLS)","MT (3 TKN)",,"MT (3 TKN)",
+SLOT 3,2.00 - 2.30,"MT (3 TLS)",,,"MT (3 TLS)",
+SLOT 4,2.30 - 3.00,,,,,"MT (3 TLS)"
+SLOT 5,3.00 - 3.30,,,,,"MT (3 TLS)"
+SLOT 6,3.30 - 4.00,"MZ (3 TGH)",,,"MT (1 TKD)","MT (3 TKN)"
+SLOT 7,4.00 - 4.30,,,,"MT (1 TKD)",
+SLOT 8,4.30 - 5.00,,"MT (1 TKD)","MZ (2 TBH)",,"MT (1 TBH)"
+SLOT 9,5.00 - 5.30,,"MT (1 TBH)",,"MT (1 TBH)",
+SLOT 10,5.30 - 6.00,,"MT (1 TBH)","MT (1 TKD)","MT (1 TBH)",
+SLOT 11,6.00 - 6.30,,,"MT (1 TKD)",,
+,,,,,,,,
+,NURHAZIRAH BT ABDUL MANAN,,,,,,,,
+,,ISNIN,SELASA,RABU,KHAMIS,JUMAAT
+SLOT 1,1.00 - 1.30,,"QR (3 TKW)",,"MZ (1 TLS)",
+SLOT 2,1.30 - 2.00,"JW (3 TKW)","QR (3 TKW)",,,
+SLOT 3,2.00 - 2.30,"TSMK (3 TKW)",,"SN (1 TKW)",,
+SLOT 4,2.30 - 3.00,"SN (1 TGH)",,"SN (1 TKW)",,"SN (1 TGH)"
+SLOT 5,3.00 - 3.30,,,"UL (3 TKW)",,"SN (1 TGH)"
+SLOT 6,3.30 - 4.00,,,"UL (3 TKW)","PK (3 TBH)",
+SLOT 7,4.00 - 4.30,,,,,,
+SLOT 8,4.30 - 5.00,,"TSMK (3 TKW)",,,"SN (1 TKW)"
+SLOT 9,5.00 - 5.30,,"MZ (1 TKD)","PJ (3 TKN)","PJ (3 TBH)",
+SLOT 10,5.30 - 6.00,,"PJ (3 TKN)",,,"PK (3 TKN)"
+SLOT 11,6.00 - 6.30,,,"PJ (3 TBH)",,
+,,,,,,,,
+,NUR ISMAH IZZAH BINTI MOHD RANI,,,,,,,,
+,,ISNIN,SELASA,RABU,KHAMIS,JUMAAT
+SLOT 1,1.00 - 1.30,,"BI (1 TKD)",,,
+SLOT 2,1.30 - 2.00,"BI (1 TGH)","BI (1 TKD)",,,
+SLOT 3,2.00 - 2.30,"BI (1 TGH)",,,"BI (1 TKD)",
+SLOT 4,2.30 - 3.00,,,,"BI (1 TKD)","BI (1 TBH)"
+SLOT 5,3.00 - 3.30,,,"BI (1 TGH)",,"BI (1 TBH)"
+SLOT 6,3.30 - 4.00,"BI (1 TKD)","BI (1 TBH)","BI (1 TGH)",,
+SLOT 7,4.00 - 4.30,"BI (1 TKD)","BI (1 TBH)",,,
+SLOT 8,4.30 - 5.00,"BI (1 TBH)","BI (1 TGH)","BI (1 TBH)","BI (1 TGH)","BI (1 TKD)"
+SLOT 9,5.00 - 5.30,"BI (1 TBH)","BI (1 TGH)","BI (1 TBH)","BI (1 TGH)","BI (1 TKD)"
+SLOT 10,5.30 - 6.00,,,,,,
+SLOT 11,6.00 - 6.30,,,,,,
+,,,,,,,,
+,NURUL FATHEHAH BINTI HAMIDON,,,,,,,,
+,,ISNIN,SELASA,RABU,KHAMIS,JUMAAT
+SLOT 1,1.00 - 1.30,,,,"BM (2 TLS)",
+SLOT 2,1.30 - 2.00,,,,"BM (2 TLS)",
+SLOT 3,2.00 - 2.30,"BM (2 TLS)","BM (2 TKW)",,"BM (2 TKW)",
+SLOT 4,2.30 - 3.00,"BM (2 TLS)","BM (2 TKW)",,"BM (2 TKW)",
+SLOT 5,3.00 - 3.30,,,"BM (1 TKW)",,"BM (1 TKW)"
+SLOT 6,3.30 - 4.00,"BM (1 TKW)","BM (1 TKW)","BM (1 TKW)",,"BM (1 TKW)"
+SLOT 7,4.00 - 4.30,"BM (1 TKW)","BM (1 TKW)",,,
+SLOT 8,4.30 - 5.00,,,"BM (2 TKW)",,
+SLOT 9,5.00 - 5.30,"BM (2 TKW)","BM (2 TLS)","BM (2 TKW)",,
+SLOT 10,5.30 - 6.00,"BM (2 TKW)","BM (2 TLS)",,,
+SLOT 11,6.00 - 6.30,,,,,,
+,,,,,,,,
+,NURUL SHAHADA BINTI OTHMAN,,,,,,,,
+,,ISNIN,SELASA,RABU,KHAMIS,JUMAAT
+SLOT 1,1.00 - 1.30,,,,,,
+SLOT 2,1.30 - 2.00,"BI (3 TBH)",,,,
+SLOT 3,2.00 - 2.30,"BI (3 TBH)","BI (3 TKD)","BI (3 TBH)","BI (3 TBH)",
+SLOT 4,2.30 - 3.00,,"BI (3 TKD)","BI (3 TBH)","BI (3 TBH)",
+SLOT 5,3.00 - 3.30,,,"BI (3 TLS)",,"BI (3 TKD)"
+SLOT 6,3.30 - 4.00,,"BI (3 TBH)","BI (3 TLS)","BI (3 TKD)","BI (3 TKD)"
+SLOT 7,4.00 - 4.30,,"BI (3 TBH)",,"BI (3 TKD)",
+SLOT 8,4.30 - 5.00,"BI (3 TLS)",,,,
+SLOT 9,5.00 - 5.30,"BI (3 TLS)","BI (3 TLS)",,"BI (3 TLS)",
+SLOT 10,5.30 - 6.00,,"BI (3 TLS)","BI (3 TKD)","BI (3 TLS)",
+SLOT 11,6.00 - 6.30,,,"BI (3 TKD)",,
+,,,,,,,,
+,NURUL ZAFIRA BINTI ZAKARIAH,,,,,,,,
+,,ISNIN,SELASA,RABU,KHAMIS,JUMAAT
+SLOT 1,1.00 - 1.30,,,,"BA (2 TGH)",
+SLOT 2,1.30 - 2.00,,,,"BA (2 TGH)",
+SLOT 3,2.00 - 2.30,,"QR (2 TKD)","BA (2 TLS)",,
+SLOT 4,2.30 - 3.00,,"QR (2 TKD)","BA (2 TLS)",,"TSMK (2 TKD)"
+SLOT 5,3.00 - 3.30,,,"BA (2 TGH)",,
+SLOT 6,3.30 - 4.00,,"BA (1 TKD)",,"BA (1 TLS)",
+SLOT 7,4.00 - 4.30,,"BA (1 TKD)",,"BA (1 TLS)",
+SLOT 8,4.30 - 5.00,"BA (2 TLS)",,"BA (1 TLS)","MZ (1 TBH)","UL (2 TKD)"
+SLOT 9,5.00 - 5.30,,,,,"UL (2 TKD)"
+SLOT 10,5.30 - 6.00,"JW (2 TKD)",,,"TSMK (2 TKD)","BA (1 TKD)"
+SLOT 11,6.00 - 6.30,,,,,,
+,,,,,,,,
+,PUNITHA A/P ANPALAGIAN,,,,,,,,
+,,ISNIN,SELASA,RABU,KHAMIS,JUMAAT
+SLOT 1,1.00 - 1.30,,"MT (2 TLS)",,,
+SLOT 2,1.30 - 2.00,,"MT (2 TLS)",,,
+SLOT 3,2.00 - 2.30,,,,"MT (2 TLS)",
+SLOT 4,2.30 - 3.00,"MT (2 TKD)",,,,
+SLOT 5,3.00 - 3.30,,,"MT (2 TKD)",,"MT (2 TLS)"
+SLOT 6,3.30 - 4.00,,,"MT (2 TKD)","MT (1 TKN)","MT (2 TLS)"
+SLOT 7,4.00 - 4.30,,,,"MT (1 TKN)",
+SLOT 8,4.30 - 5.00,"MZ (1 TGH)","MT (2 TKD)","MT (1 TKN)","MZ (1 TKW)","MT (1 TKN)"
+SLOT 9,5.00 - 5.30,"MT (1 TLS)","MT (2 TKD)","MT (1 TKN)",,
+SLOT 10,5.30 - 6.00,"MT (1 TLS)",,"MT (1 TLS)","MT (1 TLS)",
+SLOT 11,6.00 - 6.30,,,"MT (1 TLS)",,
+,,,,,,,,
+,RADHIAH BINTI ABD RAHMAN,,,,,,,,
+,,ISNIN,SELASA,RABU,KHAMIS,JUMAAT
+SLOT 1,1.00 - 1.30,,,,,,
+SLOT 2,1.30 - 2.00,"BA (1 TKN)",,,,
+SLOT 3,2.00 - 2.30,,"UL (1 TGH)","QR (2 TGH)",,
+SLOT 4,2.30 - 3.00,,"UL (1 TGH)","QR (2 TGH)","TSMK (1 TGH)","JW (2 TGH)"
+SLOT 5,3.00 - 3.30,,,,,,
+SLOT 6,3.30 - 4.00,"QR (1 TGH)",,,"UL (2 TGH)","JW (1 TGH)"
+SLOT 7,4.00 - 4.30,"QR (1 TGH)",,,"UL (2 TGH)",
+SLOT 8,4.30 - 5.00,"TSMK (2 TGH)","PSV (3 TBH)",,"BA (1 TKN)",
+SLOT 9,5.00 - 5.30,,"PSV (3 TBH)","TSMK (1 TGH)","BA (1 TKN)",
+SLOT 10,5.30 - 6.00,,"TSMK (2 TGH)","PSV (3 TLS)",,
+SLOT 11,6.00 - 6.30,,,"PSV (3 TLS)",,
+,,,,,,,,
+,SITI AMINAH BT A RAHIM,,,,,,,,
+,,ISNIN,SELASA,RABU,KHAMIS,JUMAAT
+SLOT 1,1.00 - 1.30,,"SN (3 TKN)",,,
+SLOT 2,1.30 - 2.00,"SN (3 TKN)","SN (3 TKN)",,,
+SLOT 3,2.00 - 2.30,,,"QR (2 TBH)","PSV (3 TKW)",
+SLOT 4,2.30 - 3.00,"SN (3 TLS)",,"QR (2 TBH)","PSV (3 TKW)","JW (2 TBH)"
+SLOT 5,3.00 - 3.30,,,,,,
+SLOT 6,3.30 - 4.00,"PSV (2 TGH)",,,"UL (2 TBH)",
+SLOT 7,4.00 - 4.30,"PSV (2 TGH)",,,"UL (2 TBH)",
+SLOT 8,4.30 - 5.00,,,,"MZ (2 TKD)","SN (3 TKN)"
+SLOT 9,5.00 - 5.30,"MZ (2 TLS)",,,,"SN (3 TKN)"
+SLOT 10,5.30 - 6.00,,"TSMK (2 TBH)","MZ (3 TBH)","TSMK (2 TBH)",
+SLOT 11,6.00 - 6.30,,,,,,
+,,,,,,,,
+,SITI FATIMAH BINTI MAHAMMAD KHAIRUDDIN,,,,,,,,
+,,ISNIN,SELASA,RABU,KHAMIS,JUMAAT
+SLOT 1,1.00 - 1.30,,,,,,
+SLOT 2,1.30 - 2.00,"BM (2 TKN)",,,,
+SLOT 3,2.00 - 2.30,"BM (2 TKN)",,"BM (2 TKN)",,
+SLOT 4,2.30 - 3.00,,,"BM (2 TKN)","JW (3 TKD)",
+SLOT 5,3.00 - 3.30,,,,,"BM (2 TKN)"
+SLOT 6,3.30 - 4.00,"UL (3 TKD)",,,"MZ (2 TKW)","BM (2 TKN)"
+SLOT 7,4.00 - 4.30,"UL (3 TKD)",,,,
+SLOT 8,4.30 - 5.00,,"BM (2 TBH)","QR (3 TKD)","BM (2 TKN)","BM (2 TBH)"
+SLOT 9,5.00 - 5.30,"BM (2 TBH)","BM (2 TBH)","QR (3 TKD)","BM (2 TKN)","BM (2 TBH)"
+SLOT 10,5.30 - 6.00,"BM (2 TBH)",,"BM (2 TBH)",,
+SLOT 11,6.00 - 6.30,,,"BM (2 TBH)",,
+,,,,,,,,
+,SITI PAKRIAH BINTI HAJI HASSIM,,,,,,,,
+,,ISNIN,SELASA,RABU,KHAMIS,JUMAAT
+SLOT 1,1.00 - 1.30,"MT (2 TLS, TKD, 3 GH)","MT (2 TLS, TKD, 3 GH)",,"BM (4 TLS, TBH, TKD)",
+SLOT 2,1.30 - 2.00,"MT (2 TLS, TKD, 3 GH)","MT (2 TLS, TKD, 3 GH)",,"BM (4 TLS, TBH, TKD)",
+SLOT 3,2.00 - 2.30,"MT (2 TKN, TKW, 3 TLS)",,,"MT (3 TKW, TGH, TLS)","MT (3 TKW, TGH, TLS)"
+SLOT 4,2.30 - 3.00,"MT (2 TKN, TKW, 3 TLS)",,,"MT (3 TKW, TGH, TLS)","MT (3 TKW, TGH, TLS)"
+SLOT 5,3.00 - 3.30,,,"BM (2 TBH, TKW, 3 TKD)",,
+SLOT 6,3.30 - 4.00,"BM (3 TLS, TBH, GH)","BM (2 TBH, TKW, 3 TKD)","BM (2 TBH, TKW, 3 TKD)","MT (2 TKD, 3 TBH, GH)","MT (4 TKD, 5 TGH, TKN, TLS)"
+SLOT 7,4.00 - 4.30,"BM (3 TLS, TBH, GH)","BM (2 TBH, TKW, 3 TKD)","BM (2 TBH, TKW, 3 TKD)","MT (2 TKD, 3 TBH, GH)","MT (4 TKD, 5 TGH, TKN, TLS)"
+SLOT 8,4.30 - 5.00,,,"BM (2 TKW, TBH, 3 TGH)",,"BM (4 TGH, TKN, TLS, TBH, TKD)"
+SLOT 9,5.00 - 5.30,,,"BM (2 TKW, TBH, 3 TGH)",,"BM (4 TGH, TKN, TLS, TBH, TKD)"
+SLOT 10,5.30 - 6.00,,,"BM (2 TKW, TBH, 3 TGH)",,
+SLOT 11,6.00 - 6.30,,,,,,
+,,,,,,,,
+,SUGANESWARY A/P K.SAKARAN,,,,,,,,
+,,ISNIN,SELASA,RABU,KHAMIS,JUMAAT
+SLOT 1,1.00 - 1.30,,"BI (1 TLS)","BI (1 TLS)","BI (1 TKN)",
+SLOT 2,1.30 - 2.00,,"BI (1 TLS)","BI (1 TLS)","BI (1 TKN)",
+SLOT 3,2.00 - 2.30,,,,,"BI (1 TLS)"
+SLOT 4,2.30 - 3.00,,,,"BI (1 TLS)","BI (1 TLS)"
+SLOT 5,3.00 - 3.30,,"BI (1 TKN)","BI (1 TKN)",,
+SLOT 6,3.30 - 4.00,"BI (1 TKN)","BI (1 TKN)","BI (1 TKN)","BI (1 TKW)",
+SLOT 7,4.00 - 4.30,"BI (1 TKN)","BI (1 TKN)",,"BI (1 TKW)",
+SLOT 8,4.30 - 5.00,,"BI (1 TKW)","BI (1 TKW)","BI (1 TLS)",
+SLOT 9,5.00 - 5.30,,"BI (1 TKW)","BI (1 TKW)","BI (1 TLS)","BI (1 TKW)"
+SLOT 10,5.30 - 6.00,,,,,"BI (1 TKW)"
+SLOT 11,6.00 - 6.30,,,,,,
+,,,,,,,,
+,UMMI AISHAH BINTI AB MOTALIB,,,,,,,,
+,,ISNIN,SELASA,RABU,KHAMIS,JUMAAT
+SLOT 1,1.00 - 1.30,,"BA (2 TBH)",,,
+SLOT 2,1.30 - 2.00,,"BA (2 TBH)",,,
+SLOT 3,2.00 - 2.30,"TSMK (2 TKW)","BA (3 TBH)","QR (2 TKW)",,
+SLOT 4,2.30 - 3.00,"TSMK (2 TKW)","BA (3 TBH)","QR (2 TKW)",,"TSMK (2 TKW)"
+SLOT 5,3.00 - 3.30,,,,,"TSMK (2 TKW)"
+SLOT 6,3.30 - 4.00,,,,"PSV (3 TLS)","JW (2 TKW)"
+SLOT 7,4.00 - 4.30,,,,"PSV (3 TLS)",
+SLOT 8,4.30 - 5.00,"PSV (2 TKD)",,"UL (2 TKW)","BA (2 TBH)","BA (3 TLS)"
+SLOT 9,5.00 - 5.30,"PSV (2 TKD)","UL (2 TKW)","BA (3 TLS)",,
+SLOT 10,5.30 - 6.00,,"UL (2 TKW)",,"BA (3 TBH)",
+SLOT 11,6.00 - 6.30,,,,,,
+,,,,,,,,
+,FARAH TASNIM BT MUHAMAD BASRI,,,,,,,,
+,,ISNIN,SELASA,RABU,KHAMIS,JUMAAT
+SLOT 1,1.00 - 1.30,,,,,,
+SLOT 2,1.30 - 2.00,,,,,,
+SLOT 3,2.00 - 2.30,,,,,,
+SLOT 4,2.30 - 3.00,,,,,,
+SLOT 5,3.00 - 3.30,,,,,,
+SLOT 6,3.30 - 4.00,,,,,,
+SLOT 7,4.00 - 4.30,,,,,,
+SLOT 8,4.30 - 5.00,,,,,,
+SLOT 9,5.00 - 5.30,,,,,,
+SLOT 10,5.30 - 6.00,,,,,,
+SLOT 11,6.00 - 6.30,,,,,,
+,,,,,,,,
+,NUR ALIA SYUHADA BT AZRA’I,,,,,,,,
+,,ISNIN,SELASA,RABU,KHAMIS,JUMAAT
+SLOT 1,1.00 - 1.30,,,,,,
+SLOT 2,1.30 - 2.00,,,,,,
+SLOT 3,2.00 - 2.30,,,,,,
+SLOT 4,2.30 - 3.00,,,,,,
+SLOT 5,3.00 - 3.30,,,,,,
+SLOT 6,3.30 - 4.00,,,,,,
+SLOT 7,4.00 - 4.30,,,,,,
+SLOT 8,4.30 - 5.00,,,,,,
+SLOT 9,5.00 - 5.30,,,,,,
+SLOT 10,5.30 - 6.00,,,,,,
+SLOT 11,6.00 - 6.30,,,,,,
+`;
+
+    // Data Analisis Beban Baharu (Updated)
+    const RAW_ANALYSIS = `
+BIL,NAMA GURU,ANALISIS BILANGAN MENGAJAR,,,,,,
+,,ISNIN,SELASA,RABU,KHAMIS,JUMAAT,JUMLAH MASA
+1,YAMIN,6,6,2,4,3,21
+2,FAIZ,3,5,5,5,4,22
+3,AISYAH,4,6,3,6,3,22
+4,ERNA,6,4,5,6,2,23
+5,FARIDAH,5,2,5,5,3,20
+6,HAFIZAL,1,2,2,4,1,10
+7,HANIS,4,5,4,6,3,22
+8,HARIZ,4,6,6,6,2,24
+9,HARYATI,4,6,4,5,2,21
+10,HAZIQAH,4,4,5,4,3,20
+11,YASINI,6,6,4,4,4,24
+12,KHAIRUL,5,5,4,3,4,21
+13,MOHANA,4,5,4,4,5,22
+14,ARIF,5,7,2,5,4,23
+15,NAJMI,5,4,5,3,4,21
+16,REDHA,6,4,6,4,4,24
+17,SUFI,6,5,3,3,4,21
+18,NIK,4,6,4,5,3,22
+19,FATIN,3,5,5,6,2,21
+20,NORAMIRA,6,6,2,6,4,24
+21,AZRINE,5,5,4,5,3,22
+22,NORHAYATI,3,4,5,6,2,20
+23,ATIKAH,3,5,3,7,4,22
+24,HAZIRAH,3,5,6,3,4,21
+25,IZZAH,6,6,4,4,4,24
+26,FATHEHAH,6,6,4,4,4,24
+27,SHAHADA,4,6,6,6,2,24
+28,ZAFIRA,2,4,4,6,4,20
+29,PUNITHA,4,4,6,5,3,22
+30,RADHIAH,4,5,5,5,2,21
+31,AMINAH,5,3,3,6,3,20
+32,FATIMAH,6,2,6,4,4,22
+33,PAKRIAH,6,6,6,8,6,32
+34,SUGANESWARY,2,6,6,6,4,24
+35,UMMI,3,6,4,4,3,20
+36,FARAH TASNIM,0,0,0,0,0,0
+37,NUR ALIA S,0,0,0,0,0,0
+`;
+
+
+    // --- GOOGLE SHEET CSV ONLINE ---
+    // Data diambil terus daripada Google Sheet yang telah di-Publish to web sebagai CSV.
+    const ONLINE_ABSENCE_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRRGscWZRrHs-VF9FKogsy-2wKsNbzeR9n6NKfuTBKsSt1Du07SYl5sokC5RVIv9iKLU06r6z8TmXfy/pub?gid=698214190&single=true&output=csv";
+
+    // Global Vars
+    const scheduleData = {};
+    const analysisData = {};
+    const absentList = [];
+
+    // --- PARSING FUNCTIONS ---
+
+    function normalizeName(name) {
+        if (!name) return "";
+        // Remove quotes and trim spaces strictly
+        let n = name.toUpperCase().replace(/['"]+/g, '').trim();
+        
+        // Pemetaan dari CSV Map
+        if (CSV_MAP[n]) return CSV_MAP[n];
+        
+        // Fallback Search
+        const match = TEACHER_LIST.find(t => n === t || n.includes(t) || t.includes(n));
+        return match ? match : n;
+    }
+
+
+    function parseOnlineCSV(text) {
+        const rows = [];
+        let row = [];
+        let field = "";
+        let inQuotes = false;
+
+        for (let i = 0; i < text.length; i++) {
+            const char = text[i];
+            const next = text[i + 1];
+
+            if (char === '"' && inQuotes && next === '"') {
+                field += '"';
+                i++;
+            } else if (char === '"') {
+                inQuotes = !inQuotes;
+            } else if (char === "," && !inQuotes) {
+                row.push(field);
+                field = "";
+            } else if ((char === "\n" || char === "\r") && !inQuotes) {
+                if (char === "\r" && next === "\n") i++;
+                row.push(field);
+                if (row.some(cell => String(cell).trim() !== "")) rows.push(row);
+                row = [];
+                field = "";
+            } else {
+                field += char;
+            }
+        }
+
+        if (field || row.length) {
+            row.push(field);
+            if (row.some(cell => String(cell).trim() !== "")) rows.push(row);
+        }
+
+        return rows;
+    }
+
+    function csvToObjects(csvText) {
+        const rows = parseOnlineCSV(csvText);
+        if (rows.length < 2) return [];
+
+        const headers = rows[0].map(h => String(h).trim());
+        return rows.slice(1).map(row => {
+            const obj = {};
+            headers.forEach((header, i) => {
+                obj[header] = String(row[i] || "").trim();
+            });
+            return obj;
+        });
+    }
+
+    function getOnlineField(obj, possibleNames) {
+        const keys = Object.keys(obj);
+        for (const name of possibleNames) {
+            const found = keys.find(k => String(k).trim().toUpperCase() === String(name).toUpperCase());
+            if (found) return obj[found];
+        }
+        return "";
+    }
+
+    function toDateInputValue(value) {
+        if (!value) return "";
+        const raw = String(value).trim();
+
+        // yyyy-mm-dd
+        if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+
+        // Google Sheet biasanya beri m/d/yyyy untuk tetapan English, contoh 5/18/2026
+        const slash = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+        if (slash) {
+            const month = parseInt(slash[1], 10);
+            const day = parseInt(slash[2], 10);
+            const year = slash[3];
+            return year + "-" + String(month).padStart(2, "0") + "-" + String(day).padStart(2, "0");
+        }
+
+        const date = new Date(raw);
+        if (!isNaN(date.getTime())) {
+            return date.getFullYear() + "-" +
+                String(date.getMonth() + 1).padStart(2, "0") + "-" +
+                String(date.getDate()).padStart(2, "0");
+        }
+
+        return raw;
+    }
+
+    function parseCSVData() {
+        // Parse Schedule
+        const lines = RAW_SCHEDULE.split(/\r?\n/);
+        let currentTeacher = null;
+        
+        lines.forEach(line => {
+            if (!line.trim()) return;
+            // Strict split logic
+            const cols = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(s => s.trim().replace(/^"|"$/g, ''));
+            
+            if (cols.length > 1) {
+                let rawName = cols[1].toUpperCase().trim();
+                if (rawName) {
+                    // Check direct name or mapped name
+                    if (TEACHER_LIST.includes(rawName)) {
+                        currentTeacher = rawName;
+                    } else if (CSV_MAP[rawName]) {
+                        currentTeacher = CSV_MAP[rawName];
+                    }
+                    // Jika tak jumpa, cuba normalize
+                    else {
+                        const normalized = normalizeName(rawName);
+                        if(TEACHER_LIST.includes(normalized)) {
+                            currentTeacher = normalized;
+                        }
+                    }
+
+                    if (currentTeacher && !scheduleData[currentTeacher]) {
+                        scheduleData[currentTeacher] = { ISNIN:{}, SELASA:{}, RABU:{}, KHAMIS:{}, JUMAAT:{} };
+                    }
+                }
+            }
+            
+            if (currentTeacher && cols[0].startsWith("SLOT")) {
+                const slotNum = parseInt(cols[0].replace("SLOT ", ""));
+                if(cols[2]) scheduleData[currentTeacher].ISNIN[slotNum] = cols[2];
+                if(cols[3]) scheduleData[currentTeacher].SELASA[slotNum] = cols[3];
+                if(cols[4]) scheduleData[currentTeacher].RABU[slotNum] = cols[4];
+                if(cols[5]) scheduleData[currentTeacher].KHAMIS[slotNum] = cols[5];
+                if(cols[6]) scheduleData[currentTeacher].JUMAAT[slotNum] = cols[6];
+            }
+        });
+
+        // Parse Analysis
+        const analysisLines = RAW_ANALYSIS.split(/\r?\n/);
+        analysisLines.forEach(line => {
+            if (!line.trim()) return;
+            // Strict parsing for analysis lines
+            const cols = line.split(',').map(s => s.trim());
+            
+            // Validate row structure: Index 2 must be a number (Monday load)
+            if (cols.length > 5 && !isNaN(parseInt(cols[2]))) {
+                let rawName = cols[1].toUpperCase();
+                let fullName = normalizeName(rawName);
+                
+                if (fullName) {
+                    analysisData[fullName] = {
+                        ISNIN: parseInt(cols[2]) || 0,
+                        SELASA: parseInt(cols[3]) || 0,
+                        RABU: parseInt(cols[4]) || 0,
+                        KHAMIS: parseInt(cols[5]) || 0,
+                        JUMAAT: parseInt(cols[6]) || 0
+                    };
+                }
+            }
+        });
+    }
+
+    // --- UI LOGIC ---
+
+    function init() {
+        const select = document.getElementById('inputTeacher');
+        TEACHER_LIST.sort().forEach(t => {
+            const opt = document.createElement('option');
+            opt.value = t;
+            opt.textContent = t;
+            select.appendChild(opt);
+        });
+        parseCSVData();
+    }
+
+    function detectDay() {
+        const dateVal = document.getElementById('inputDate').value;
+        if (!dateVal) return;
+        
+        const d = new Date(dateVal + 'T00:00:00');
+        const days = ['AHAD', 'ISNIN', 'SELASA', 'RABU', 'KHAMIS', 'JUMAAT', 'SABTU'];
+        const dayName = days[d.getDay()];
+        
+        document.getElementById('inputDay').value = dayName;
+    }
+
+
+    async function fetchOnlineData() {
+        const dateVal = document.getElementById('inputDate').value;
+
+        if (!dateVal) {
+            alert("Sila pilih tarikh dahulu.");
+            return;
+        }
+
+        const btn = document.getElementById('btnFetchOnline');
+        const statusBox = document.getElementById('onlineStatus');
+        const originalText = btn ? btn.innerHTML : "";
+
+        if (btn) {
+            btn.innerHTML = "⏳ Mengambil data...";
+            btn.disabled = true;
+        }
+
+        if (statusBox) {
+            statusBox.style.display = "block";
+            statusBox.textContent = "Sedang mengambil data daripada Google Sheet CSV...";
+        }
+
+        try {
+            const response = await fetch(ONLINE_ABSENCE_CSV_URL + "&cacheBust=" + Date.now());
+
+            if (!response.ok) {
+                throw new Error("CSV tidak boleh dibuka. Status: " + response.status);
+            }
+
+            const csvText = await response.text();
+            const data = csvToObjects(csvText);
+
+            if (!data.length) {
+                if (statusBox) statusBox.textContent = "Tiada data dalam CSV.";
+                alert("Tiada data dalam CSV.");
+                return;
+            }
+
+            const filteredData = data.filter(item => {
+                const tarikhRaw = getOnlineField(item, ["TARIKH TIDAK HADIR", "Tarikh Tidak Hadir", "tarikh"]);
+                const status = getOnlineField(item, ["STATUS", "Status", "status"]).trim().toUpperCase();
+                const tarikh = toDateInputValue(tarikhRaw);
+
+                return tarikh === dateVal && status === "PERLU GANTI";
+            });
+
+            if (filteredData.length === 0) {
+                if (statusBox) statusBox.textContent = "Tiada data guru tidak hadir untuk tarikh ini.";
+                alert("Tiada data guru tidak hadir untuk tarikh ini.");
+                return;
+            }
+
+            let addedCount = 0;
+            let unknownTeachers = [];
+
+            filteredData.forEach(item => {
+                const rawName = getOnlineField(item, ["NAMA GURU", "Nama Guru", "namaGuru"]);
+                const reason = getOnlineField(item, ["SEBAB TIDAK HADIR", "Sebab Tidak Hadir", "sebab"]) || "Tidak dinyatakan";
+                const normalizedName = normalizeName(rawName);
+
+                if (!normalizedName) return;
+
+                if (!TEACHER_LIST.includes(normalizedName)) {
+                    unknownTeachers.push(rawName || normalizedName);
+                }
+
+                if (!absentList.find(x => x.name === normalizedName)) {
+                    absentList.push({ name: normalizedName, reason });
+                    addedCount++;
+                }
+            });
+
+            renderAbsentTable();
+            document.getElementById('step2').style.display = absentList.length > 0 ? 'block' : 'none';
+
+            if (absentList.length > 10) {
+                document.getElementById('highAbsentAlert').style.display = 'flex';
+            }
+
+            if (statusBox) statusBox.textContent = "Berjaya mengambil " + addedCount + " rekod guru tidak hadir daripada Google Sheet CSV.";
+            alert("Berjaya mengambil dan memasukkan " + addedCount + " data guru tidak hadir.");
+
+            if (unknownTeachers.length > 0) {
+                alert("Amaran: Ada nama guru tidak sepadan dengan senarai sistem: " + unknownTeachers.join(", "));
+            }
+
+        } catch (error) {
+            if (statusBox) statusBox.textContent = "Ralat sebenar: " + error.message;
+            alert("Ralat sebenar: " + error.message);
+            console.error(error);
+        } finally {
+            if (btn) {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+    }
+
+    function addAbsentee() {
+        const name = document.getElementById('inputTeacher').value;
+        const reason = document.getElementById('inputReason').value;
+        const date = document.getElementById('inputDate').value;
+        
+        if (!name || !date) { alert("Sila pilih Tarikh dan Nama Guru."); return; }
+        if (absentList.find(x => x.name === name)) { alert("Guru ini telah ada dalam senarai."); return; }
+
+        absentList.push({ name, reason });
+        renderAbsentTable();
+        document.getElementById('step2').style.display = 'block';
+
+        if (absentList.length > 10) {
+            document.getElementById('highAbsentAlert').style.display = 'flex';
+        }
+    }
+
+    function renderAbsentTable() {
+        const container = document.getElementById('absentContainer');
+        const tbody = document.querySelector('#absentTable tbody');
+        tbody.innerHTML = '';
+        
+        document.getElementById('absentCount').innerText = absentList.length;
+
+        if (absentList.length > 0) {
+            container.style.display = 'block';
+            absentList.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.name}</td>
+                    <td>${item.reason}</td>
+                    <td><button class="btn btn-danger" onclick="removeAbsentee(${index})">Padam</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } else {
+            container.style.display = 'none';
+            document.getElementById('step2').style.display = 'none';
+            document.getElementById('resultsArea').innerHTML = '';
+            document.getElementById('pdfArea').style.display = 'none';
+            document.getElementById('highAbsentAlert').style.display = 'none';
+        }
+    }
+
+    function removeAbsentee(index) {
+        absentList.splice(index, 1);
+        renderAbsentTable();
+        if (absentList.length <= 10) {
+            document.getElementById('highAbsentAlert').style.display = 'none';
+        }
+    }
+
+    // --- GENERATION LOGIC ---
+
+    function generateRelief() {
+        const day = document.getElementById('inputDay').value;
+        if (day === 'AHAD' || day === 'SABTU') {
+            alert("Sila pilih hari persekolahan (Isnin - Jumaat).");
+            return;
+        }
+
+        const resultsArea = document.getElementById('resultsArea');
+        resultsArea.innerHTML = '';
+        
+        if (absentList.length === 0) return;
+
+        let currentGenCounts = {};
+        TEACHER_LIST.forEach(t => currentGenCounts[t] = 0);
+        let assignedReliefSlots = {}; 
+
+        absentList.forEach(absentee => {
+            if (!scheduleData[absentee.name]) return;
+            const teacherSchedule = scheduleData[absentee.name][day];
+            if (!teacherSchedule) return;
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'result-box';
+            
+            let html = `
+                <div class="result-title">
+                    Jadual Ganti: <strong>${absentee.name}</strong> <span style="font-weight:normal">(${absentee.reason})</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="relief-table">
+                        <thead>
+                            <tr>
+                                <th width="10%" class="col-slot">Slot</th>
+                                <th width="15%">Masa</th>
+                                <th width="25%">Subjek / Kelas</th>
+                                <th width="15%">Status</th>
+                                <th width="35%">Guru Ganti Dicadangkan</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            let hasClasses = false;
+            for (let i = 1; i <= 11; i++) {
+                const subject = teacherSchedule[i];
+                if (!subject) continue; 
+                
+                if (isExcludedSlot(day, i)) continue;
+
+                hasClasses = true;
+                
+                let { strict, forced } = getCandidates(day, i, absentee.name, currentGenCounts, assignedReliefSlots);
+                
+                let bestCandidate = "";
+                if (strict.length > 0) bestCandidate = strict[0];
+                else if (forced.length > 0) bestCandidate = forced[0];
+                
+                if (bestCandidate) {
+                    currentGenCounts[bestCandidate]++;
+                    if (!assignedReliefSlots[bestCandidate]) assignedReliefSlots[bestCandidate] = [];
+                    assignedReliefSlots[bestCandidate].push(i);
+                }
+
+                html += `
+                    <tr>
+                        <td class="col-slot">${i}</td>
+                        <td>${SLOT_TIMES[i-1]}</td>
+                        <td>${subject}</td>
+                        <td>
+                            <label class="switch">
+                                <input type="checkbox" checked onchange="toggleRelief(this)">
+                                <span class="slider"></span>
+                            </label>
+                            <span class="status-label">PERLU</span>
+                        </td>
+                        <td>
+                            <select class="relief-select">
+                                <option value="">-- Tiada --</option>
+                `;
+
+                if (strict.length > 0) {
+                    html += `<optgroup label="Calon Disyorkan (Beban Rendah)">`;
+                    strict.forEach(c => {
+                        html += `<option value="${c}" class="opt-good" ${c===bestCandidate?'selected':''}>${c}</option>`;
+                    });
+                    html += `</optgroup>`;
+                }
+
+                if (forced.length > 0) {
+                    html += `<optgroup label="Calon Simpanan (Beban Penuh)">`;
+                    forced.forEach(c => {
+                        html += `<option value="${c}" class="opt-overload" ${c===bestCandidate?'selected':''}>${c} (Lebih Masa)</option>`;
+                    });
+                    html += `</optgroup>`;
+                }
+
+                html += `
+                                <optgroup label="Semua Guru">
+                                    ${TEACHER_LIST.map(t => `<option value="${t}">${t}</option>`).join('')}
+                                </optgroup>
+                            </select>
+                        </td>
+                    </tr>
+                `;
+            }
+            html += `</tbody></table></div>`;
+            
+            if (hasClasses) {
+                wrapper.innerHTML = html;
+                resultsArea.appendChild(wrapper);
+            }
+        });
+
+        if (resultsArea.innerHTML === '') {
+            resultsArea.innerHTML = '<div style="text-align:center; padding:20px; color:#666;">Tiada kelas yang perlu diganti pada hari ini.</div>';
+        } else {
+            document.getElementById('pdfArea').style.display = 'block';
+        }
+    }
+
+    function toggleRelief(checkbox) {
+        const row = checkbox.closest('tr');
+        const select = row.querySelector('.relief-select');
+        const label = row.querySelector('.status-label');
+        
+        if (checkbox.checked) {
+            select.disabled = false;
+            label.innerText = "PERLU";
+            label.style.color = "#2e7d32";
+        } else {
+            select.disabled = true;
+            label.innerText = "TIDAK PERLU";
+            label.style.color = "#999";
+        }
+    }
+
+    function isExcludedSlot(day, slot) {
+        if (slot === 5 && ['ISNIN','SELASA','KHAMIS'].includes(day)) return true;
+        if (slot === 7 && ['RABU','JUMAAT'].includes(day)) return true;
+        if (slot === 1 && day === 'ISNIN') return true;
+        if (slot <= 3 && day === 'JUMAAT') return true;
+        return false;
+    }
+
+    function getCandidates(day, slot, absentName, currentGenCounts, assignedReliefSlots) {
+        let strict = [];
+        let forced = [];
+        
+        TEACHER_LIST.forEach(t => {
+            if (t === absentName) return;
+            if (absentList.some(a => a.name === t)) return;
+
+            // RULE: HAFIZAL (PK PETANG) - Block Slot 7-10 (4pm - 6pm)
+            if (t === "HAFIZAL BIN JOHARI" && slot >= 7 && slot <= 10) return;
+
+            // RULE: FARAH TASNIM - Block Slot 5 and above (3pm onwards)
+            if (t === "FARAH TASNIM BT MUHAMAD BASRI" && slot > 4) return;
+
+            // RULE: NUR ALIA SYUHADA - Block Slot 5 and above (3pm onwards)
+            if (t === "NUR ALIA SYUHADA BT AZRA’I" && slot > 4) return;
+
+            // Check Busy
+            const tSched = scheduleData[t] ? scheduleData[t][day] : {};
+            if (tSched[slot]) return; 
+
+            // Check Assigned Overlap
+            if (assignedReliefSlots[t] && assignedReliefSlots[t].includes(slot)) return;
+
+            // Check Load
+            let baseLoad = 0;
+            if (analysisData[t] && typeof analysisData[t][day] === 'number') {
+                baseLoad = analysisData[t][day];
+            }
+            
+            const dailyLoad = baseLoad + currentGenCounts[t];
+            
+            // Peraturan Beban Rendah < 6
+            if (dailyLoad < 6) {
+                strict.push(t);
+            } else {
+                forced.push(t);
+            }
+        });
+
+        const sortFunc = (a, b) => {
+            const loadA = (analysisData[a]?analysisData[a][day]:0) + currentGenCounts[a];
+            const loadB = (analysisData[b]?analysisData[b][day]:0) + currentGenCounts[b];
+            return loadA - loadB;
+        };
+
+        strict.sort(sortFunc);
+        forced.sort(sortFunc);
+
+        return { strict, forced };
+    }
+
+    // --- PDF FUNCTION ---
+
+    async function generatePDF() {
+        if (!window.jspdf) { alert("Library PDF belum dimuatkan sepenuhnya. Sila tunggu sebentar."); return; }
+        
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        const dateStr = document.getElementById('inputDate').value;
+        const dayStr = document.getElementById('inputDay').value;
+
+        try {
+            const logoUrl = document.querySelector('.logo-img').src;
+            const imgData = await getBase64Image(logoUrl);
+            doc.addImage(imgData, 'JPEG', 15, 10, 20, 20);
+        } catch (e) {
+            console.warn("Logo issue.");
+        }
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(14);
+        doc.text("SENARAI GURU GANTI", 105, 18, { align: "center" });
+        doc.setFontSize(11);
+        doc.text("SK TAMAN NUSA PERINTIS 1", 105, 24, { align: "center" });
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+        doc.text(`Tarikh: ${dateStr} (${dayStr})`, 105, 30, { align: "center" });
+        
+        doc.setLineWidth(0.5);
+        doc.line(15, 35, 195, 35);
+
+        let finalY = 40;
+
+        const boxes = document.querySelectorAll('.result-box');
+        
+        for (const box of boxes) {
+            const title = box.querySelector('.result-title').innerText;
+            const rows = [];
+            
+            box.querySelectorAll('tbody tr').forEach(tr => {
+                const tds = tr.querySelectorAll('td');
+                const slot = tds[0].innerText;
+                const time = tds[1].innerText;
+                const sub = tds[2].innerText;
+                
+                // Check if relief is needed
+                const isNeeded = tds[3].querySelector('input[type="checkbox"]').checked;
+                const selectEl = tds[4].querySelector('select');
+                
+                let replacement;
+                if (!isNeeded) {
+                    replacement = "TIDAK PERLU GANTI";
+                } else {
+                    replacement = selectEl.options[selectEl.selectedIndex].text;
+                    replacement = replacement.replace(" (Lebih Masa)", "*");
+                }
+
+                rows.push([slot, time, sub, replacement]);
+            });
+
+            if (rows.length > 0) {
+                if (finalY > 250) { doc.addPage(); finalY = 20; }
+
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(10);
+                doc.setTextColor(74, 0, 114);
+                doc.text(title, 15, finalY);
+                finalY += 3;
+
+                doc.autoTable({
+                    startY: finalY,
+                    head: [['Slot', 'Masa', 'Subjek / Kelas', 'Guru Ganti']],
+                    body: rows,
+                    theme: 'grid',
+                    headStyles: { fillColor: [74, 0, 114], textColor: 255 },
+                    styles: { fontSize: 9, cellPadding: 2 },
+                    margin: { left: 15, right: 15 },
+                    columnStyles: { 0: {cellWidth: 15}, 1: {cellWidth: 30}, 2: {cellWidth: 45} },
+                    didParseCell: function(data) {
+                        if (data.column.index === 3 && data.cell.raw === "TIDAK PERLU GANTI") {
+                            data.cell.styles.textColor = [150, 150, 150];
+                            data.cell.styles.fontStyle = 'italic';
+                        }
+                    }
+                });
+
+                finalY = doc.lastAutoTable.finalY + 10;
+            }
+        }
+
+        if (finalY > 240) { doc.addPage(); finalY = 20; }
+        
+        finalY += 10;
+        doc.setTextColor(0);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+        doc.text("Disediakan Oleh:", 15, finalY);
+        finalY += 25;
+        doc.setFont("helvetica", "bold");
+        doc.text("(HAFIZAL BIN JOHARI)", 15, finalY);
+        doc.setFont("helvetica", "normal");
+        doc.text("PENOLONG KANAN PETANG", 15, finalY + 5);
+
+        doc.setFontSize(8);
+        doc.text("* Guru Ganti Lebih Masa", 15, 290);
+
+        doc.save(`Jadual_Ganti_${dateStr}.pdf`);
+    }
+
+    function getBase64Image(url) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.setAttribute("crossOrigin", "anonymous");
+            img.src = url;
+            img.onload = () => {
+                const canvas = document.createElement("canvas");
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0);
+                try {
+                    resolve(canvas.toDataURL("image/jpeg"));
+                } catch (e) { reject(e); }
+            };
+            img.onerror = reject;
+        });
+    }
+
+    window.onload = init;
+</script>
+
+</body>
+</html>
