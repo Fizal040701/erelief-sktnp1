@@ -306,7 +306,7 @@
             </div>
         </div>
 
-        <!-- Butang Actions Sesuai Permintaan -->
+        <!-- Butang Actions -->
         <div class="button-group">
             <button class="btn btn-primary" onclick="addAbsentee()">+ Tambah Manual Ke Senarai</button>
             <button id="btnFetchOnline" class="btn btn-online" onclick="fetchOnlineData()">☁️ Ambil Data Online</button>
@@ -822,7 +822,7 @@ SLOT 3,2.00 - 2.30,"BI (3 TBH)","BI (3 TKD)","BI (3 TBH)","BI (3 TBH)",
 SLOT 4,2.30 - 3.00,,"BI (3 TKD)","BI (3 TBH)","BI (3 TBH)",
 SLOT 5,3.00 - 3.30,,,"BI (3 TLS)",,"BI (3 TKD)"
 SLOT 6,3.30 - 4.00,,"BI (3 TBH)","BI (3 TLS)","BI (3 TKD)","BI (3 TKD)"
-SLOT 7,4.00 - 4.30,,"BI (3 TBH)","BI (3 TKD)",
+SLOT 7,4.00 - 4.30,,"BI (3 TBH)",,"BI (3 TKD)",
 SLOT 8,4.30 - 5.00,"BI (3 TLS)",,,,
 SLOT 9,5.00 - 5.30,"BI (3 TLS)","BI (3 TLS)",,"BI (3 TLS)",
 SLOT 10,5.30 - 6.00,,"BI (3 TLS)","BI (3 TKD)","BI (3 TLS)",
@@ -1124,7 +1124,30 @@ BIL,NAMA GURU,ANALISIS BILANGAN MENGAJAR,,,,,,
         updateUIAfterAdd();
     }
 
-    // --- NEW: FETCH ONLINE API LOGIC ---
+    // --- FUNGSI JSONP UNTUK GOOGLE APPS SCRIPT ---
+    function fetchJsonp(url) {
+        return new Promise((resolve, reject) => {
+            const callbackName = "jsonpCallback_" + Date.now();
+
+            window[callbackName] = function(data) {
+                delete window[callbackName];
+                script.remove();
+                resolve(data);
+            };
+
+            const script = document.createElement("script");
+            script.src = url + (url.includes("?") ? "&" : "?") + "callback=" + callbackName;
+            script.onerror = function() {
+                delete window[callbackName];
+                script.remove();
+                reject(new Error("Gagal mengambil data online"));
+            };
+
+            document.body.appendChild(script);
+        });
+    }
+
+    // --- FETCH ONLINE API LOGIC (UPDATED WITH JSONP) ---
     async function fetchOnlineData() {
         const dateVal = document.getElementById('inputDate').value;
         if (!dateVal) { 
@@ -1138,10 +1161,8 @@ BIL,NAMA GURU,ANALISIS BILANGAN MENGAJAR,,,,,,
         btn.disabled = true;
 
         try {
-            const response = await fetch(API_URL);
-            if (!response.ok) throw new Error("Gagal menyambung ke API");
-            
-            const data = await response.json();
+            // Menggunakan fungsi fetchJsonp yang dimintak
+            const data = await fetchJsonp(API_URL);
             
             // Tapis berdasarkan tarikh dan status "PERLU GANTI"
             const filteredData = data.filter(item => {
