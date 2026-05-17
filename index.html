@@ -107,7 +107,7 @@
       font-weight: 600;
     }
 
-    input, select, textarea {
+    input, select {
       width: 100%;
       border: 1px solid var(--border);
       border-radius: 12px;
@@ -118,7 +118,7 @@
       outline: none;
     }
 
-    input:focus, select:focus, textarea:focus {
+    input:focus, select:focus {
       border-color: var(--primary-2);
       box-shadow: 0 0 0 4px rgba(123,44,191,.12);
     }
@@ -207,13 +207,6 @@
       color: #075985;
     }
 
-    .danger-note {
-      background: #fef2f2;
-      color: #991b1b;
-      border: 1px solid #fecaca;
-      display: none;
-    }
-
     .result-card {
       border: 1px solid #e9d5ff;
       background: #fff;
@@ -247,7 +240,6 @@
 
 <body>
   <header>
-    <!-- Jika logo tidak keluar, ganti URL src di bawah dengan fail logo sendiri -->
     <img class="logo" src="https://raw.githubusercontent.com/Fizal040701/erelief-sktnp1/main/logo.png" onerror="this.style.display='none'" alt="Logo Sekolah">
     <h1>Jadual Guru Ganti</h1>
     <div class="subtitle">SK Taman Nusa Perintis 1 (Sesi Petang)</div>
@@ -345,16 +337,10 @@
 
   <script>
     /************************************************************
-     * KONFIGURASI API
-     * Apps Script mesti support JSONP dan akses Web App = Anyone
+     * KONFIGURASI CSV GOOGLE SHEET
      ************************************************************/
- const ONLINE_ABSENCE_API_URL = "https://script.google.com/a/macros/moe-dl.edu.my/s/AKfycbxh2BwxOjt_5e4jUoztns3bzlawgAdeZ36PZPIEDdR9LSIw49za2hDLv-MnNeARQfQleg/exec";
-    const ONLINE_ABSENCE_API_URI = ONLINE_ABSENCE_API_URL;
+    const ONLINE_ABSENCE_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRRGscWZRrHs-VF9FKoqsy-2wKsNbzeR9n6NKfuTBKsSt1DuO7SYI5sokC5RVIv9iKLUO6r6z8TmXfy/pub?gid=698214190&single=true&output=csv";
 
-    /************************************************************
-     * DATA GURU
-     * Cikgu boleh tambah nama guru penuh di sini.
-     ************************************************************/
     const TEACHER_LIST = [
       "ABDUL YAMIN BIN ANANG",
       "AHMAD FAIZ BIN KHAIRUDDIN",
@@ -378,7 +364,6 @@
       "ZURAINI"
     ];
 
-    /* Peta nama jika data Google Form sedikit berbeza */
     const CSV_MAP = {
       "HAFIZAL BIN JOHARI": "HAFIZAL BIN JOHARI"
     };
@@ -449,33 +434,96 @@
       updateUIAfterAdd();
     }
 
-    function fetchJsonp(url) {
-      return new Promise((resolve, reject) => {
-        const callbackName = "jsonpCallback_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
-        const script = document.createElement("script");
-        const timeout = setTimeout(() => {
-          delete window[callbackName];
-          script.remove();
-          reject(new Error("Timeout. API tidak memberi respons."));
-        }, 15000);
+    function parseCSV(text) {
+      const rows = [];
+      let row = [];
+      let field = "";
+      let inQuotes = false;
 
-        window[callbackName] = function(data) {
-          clearTimeout(timeout);
-          delete window[callbackName];
-          script.remove();
-          resolve(data);
-        };
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        const next = text[i + 1];
 
-        script.onerror = function() {
-          clearTimeout(timeout);
-          delete window[callbackName];
-          script.remove();
-          reject(new Error("Gagal memuatkan script JSONP. Semak akses Apps Script / URL API."));
-        };
+        if (char === '"' && inQuotes && next === '"') {
+          field += '"';
+          i++;
+        } else if (char === '"') {
+          inQuotes = !inQuotes;
+        } else if (char === "," && !inQuotes) {
+          row.push(field);
+          field = "";
+        } else if ((char === "\n" || char === "\r") && !inQuotes) {
+          if (char === "\r" && next === "\n") i++;
+          row.push(field);
+          if (row.some(cell => cell.trim() !== "")) rows.push(row);
+          row = [];
+          field = "";
+        } else {
+          field += char;
+        }
+      }
 
-        script.src = url + (url.includes("?") ? "&" : "?") + "callback=" + callbackName;
-        document.body.appendChild(script);
+      if (field || row.length) {
+        row.push(field);
+        if (row.some(cell => cell.trim() !== "")) rows.push(row);
+      }
+
+      return rows;
+    }
+
+    function csvToObjects(csvText) {
+      const rows = parseCSV(csvText);
+      if (rows.length < 2) return [];
+
+      const headers = rows[0].map(h => h.trim());
+      return rows.slice(1).map(row => {
+        const obj = {};
+        headers.forEach((header, i) => {
+          obj[header] = (row[i] || "").trim();
+        });
+        return obj;
       });
+    }
+
+    function getField(obj, possibleNames) {
+      const keys = Object.keys(obj);
+      for (const name of possibleNames) {
+        const found = keys.find(k => k.trim().toUpperCase() === name.toUpperCase());
+        if (found) return obj[found];
+      }
+      return "";
+    }
+
+    function toDateInputValue(value) {
+      if (!value) return "";
+
+      const raw = String(value).trim();
+
+      // Sudah format yyyy-mm-dd
+      if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+
+      // Format dd/mm/yyyy atau mm/dd/yyyy daripada Google Sheet
+      const slash = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+      if (slash) {
+        const a = parseInt(slash[1], 10);
+        const b = parseInt(slash[2], 10);
+        const y = slash[3];
+
+        // Dalam sheet cikgu nampak 5/18/2026, jadi format utama ialah mm/dd/yyyy
+        const month = a;
+        const day = b;
+
+        return y + "-" + String(month).padStart(2, "0") + "-" + String(day).padStart(2, "0");
+      }
+
+      const date = new Date(raw);
+      if (!isNaN(date.getTime())) {
+        return date.getFullYear() + "-" +
+          String(date.getMonth() + 1).padStart(2, "0") + "-" +
+          String(date.getDate()).padStart(2, "0");
+      }
+
+      return raw;
     }
 
     async function fetchOnlineData() {
@@ -493,18 +541,28 @@
       btn.innerHTML = "⏳ Mengambil data...";
       btn.disabled = true;
       statusBox.style.display = "block";
-      statusBox.textContent = "Sedang mengambil data daripada Google Form...";
+      statusBox.textContent = "Sedang mengambil data daripada Google Sheet CSV...";
 
       try {
-        const data = await fetchJsonp(ONLINE_ABSENCE_API_URI);
+        const response = await fetch(ONLINE_ABSENCE_CSV_URL + "&cacheBust=" + Date.now());
 
-        if (!Array.isArray(data)) {
-          throw new Error("Format data API bukan array.");
+        if (!response.ok) {
+          throw new Error("CSV tidak boleh dibuka. Status: " + response.status);
+        }
+
+        const csvText = await response.text();
+        const data = csvToObjects(csvText);
+
+        if (!data.length) {
+          alert("Tiada data dalam CSV.");
+          statusBox.textContent = "Tiada data dalam CSV.";
+          return;
         }
 
         const filteredData = data.filter(item => {
-          const tarikh = String(item.tarikh || "").trim();
-          const status = String(item.status || "").trim().toUpperCase();
+          const tarikhRaw = getField(item, ["TARIKH TIDAK HADIR", "Tarikh Tidak Hadir", "tarikh"]);
+          const status = getField(item, ["STATUS", "Status", "status"]).trim().toUpperCase();
+          const tarikh = toDateInputValue(tarikhRaw);
           return tarikh === dateVal && status === "PERLU GANTI";
         });
 
@@ -518,9 +576,9 @@
         let unknownTeachers = [];
 
         filteredData.forEach(item => {
-          const rawName = String(item.namaGuru || "").toUpperCase().trim();
+          const rawName = getField(item, ["NAMA GURU", "Nama Guru", "namaGuru"]);
+          const reason = getField(item, ["SEBAB TIDAK HADIR", "Sebab Tidak Hadir", "sebab"]) || "Tidak dinyatakan";
           const normalizedName = normalizeName(rawName);
-          const reason = item.sebab || "Tidak dinyatakan";
 
           if (!normalizedName) return;
 
@@ -536,7 +594,7 @@
 
         updateUIAfterAdd();
 
-        statusBox.textContent = "Berjaya mengambil " + addedCount + " rekod guru tidak hadir.";
+        statusBox.textContent = "Berjaya mengambil " + addedCount + " rekod guru tidak hadir daripada CSV.";
         alert("Berjaya mengambil dan memasukkan " + addedCount + " data guru tidak hadir.");
 
         if (unknownTeachers.length > 0) {
