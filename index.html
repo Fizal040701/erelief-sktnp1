@@ -1163,7 +1163,7 @@ BIL,NAMA GURU,ANALISIS BILANGAN MENGAJAR,,,,,,
         btn.disabled = true;
 
         try {
-            const data = await fetchJsonp(ONLINE_ABSENCE_API_URL);
+            const data = await fetchJsonp(ONLINE_ABSENCE_API_URI);
             
             // Tapis berdasarkan tarikh dan status "PERLU GANTI"
             const filteredData = data.filter(item => {
