@@ -1725,7 +1725,7 @@ BIL,NAMA GURU,ANALISIS BILANGAN MENGAJAR,,,,,,
         return rows;
     }
 
-    function sendNotificationToReliefTeachers() {
+    async function sendNotificationToReliefTeachers() {
         const statusBox = document.getElementById('notificationStatus');
         const data = getReliefNotificationRows();
 
@@ -1743,21 +1743,37 @@ BIL,NAMA GURU,ANALISIS BILANGAN MENGAJAR,,,,,,
             statusBox.style.background = '#eef6ff';
             statusBox.style.color = '#075985';
             statusBox.style.borderColor = '#bae6fd';
-            statusBox.innerHTML = '⏳ Menghantar arahan email guru ganti. Tab Apps Script akan dibuka.';
+            statusBox.innerHTML = '⏳ Menghantar email guru ganti...';
         }
 
-        window.open(url, '_blank');
+        try {
+            // Hantar terus kepada Google Apps Script tanpa buka tab baru.
+            await fetch(url, {
+                method: 'GET',
+                mode: 'no-cors',
+                cache: 'no-store'
+            });
 
-        setTimeout(() => {
             if (statusBox) {
                 statusBox.style.background = '#ecfdf5';
                 statusBox.style.color = '#065f46';
                 statusBox.style.borderColor = '#a7f3d0';
                 statusBox.innerHTML = '✅ Arahan email guru ganti telah dihantar. Sila semak Gmail guru dan tab JADUAL_GURU_GANTI.';
             }
-        }, 1500);
 
-        alert('Arahan email guru ganti telah dihantar. Semak Gmail guru / Google Sheet JADUAL_GURU_GANTI.');
+            alert('Arahan email guru ganti telah dihantar. Semak Gmail guru / Google Sheet JADUAL_GURU_GANTI.');
+
+        } catch (err) {
+            // Sandaran: buka URL jika fetch gagal.
+            window.open(url, '_blank');
+            if (statusBox) {
+                statusBox.style.background = '#fff7ed';
+                statusBox.style.color = '#9a3412';
+                statusBox.style.borderColor = '#fed7aa';
+                statusBox.innerHTML = '⚠️ Jika email belum masuk, tab Apps Script telah dibuka sebagai sandaran.';
+            }
+            alert('Arahan dibuka dalam tab baru. Semak tab JADUAL_GURU_GANTI.');
+        }
     }
 
 
