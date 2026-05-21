@@ -330,10 +330,14 @@
     <div id="resultsArea"></div>
 
     <div id="pdfArea" style="display:none; text-align: center; margin-bottom: 3rem;">
-        <button class="btn btn-pdf" style="width: auto; padding: 10px 30px; margin: 0 auto;" onclick="generatePDF()">
+        <button class="btn btn-pdf" style="width: auto; padding: 10px 30px; margin: 0 auto 10px auto;" onclick="generatePDF()">
             <span>📄 Muat Turun PDF</span>
         </button>
-        <p style="font-size:0.8rem; color:#888; margin-top:5px;">Pastikan pilihan Guru Ganti di atas dimuktamadkan sebelum muat turun.</p>
+        <button id="btnNotifyReliefTeachers" class="btn" style="width: auto; padding: 10px 30px; margin: 0 auto; background:#f59e0b; color:white;" onclick="sendNotificationToReliefTeachers()">
+            <span>📧 Hantar Notifikasi Guru Ganti</span>
+        </button>
+        <div id="notificationStatus" style="display:none; margin:10px auto 0 auto; padding:10px; border-radius:8px; max-width:720px; background:#eef6ff; color:#075985; border:1px solid #bae6fd; font-size:0.9rem;"></div>
+        <p style="font-size:0.8rem; color:#888; margin-top:5px;">Pastikan pilihan Guru Ganti di atas dimuktamadkan sebelum muat turun / hantar email.</p>
     </div>
 
 </div>
@@ -1678,6 +1682,83 @@ BIL,NAMA GURU,ANALISIS BILANGAN MENGAJAR,,,,,,
         });
     }
 
+
+
+    // --- EMAIL NOTIFICATION GURU GANTI ---
+    const EMAIL_GURU_GANTI_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyH94qetKZIxvXIPceVxm3-ITVa3tVD6mj-pVG3PD4fug1ZewUKVqRuP1CzNcRg50WB/exec";
+
+    function getReliefNotificationRows() {
+        const tarikh = document.getElementById('inputDate')?.value || '';
+        const hari = document.getElementById('inputDay')?.value || '';
+        const rows = [];
+
+        document.querySelectorAll('.result-box').forEach(box => {
+            const titleText = box.querySelector('.result-title')?.innerText || '';
+            let guruTidakHadir = titleText
+                .replace('Jadual Ganti:', '')
+                .replace(/\(.+?\)/g, '')
+                .trim();
+
+            box.querySelectorAll('tbody tr').forEach(tr => {
+                const cells = tr.querySelectorAll('td');
+                const checkbox = cells[3]?.querySelector('input[type="checkbox"]');
+                const selectEl = cells[4]?.querySelector('select.relief-select');
+
+                if (!checkbox || !selectEl) return;
+                if (!checkbox.checked) return;
+
+                const guruGanti = selectEl.value || '';
+                if (!guruGanti) return;
+
+                rows.push({
+                    tarikh: tarikh,
+                    hari: hari,
+                    slot: (cells[0]?.innerText || '').trim(),
+                    masa: (cells[1]?.innerText || '').trim(),
+                    kelas: (cells[2]?.innerText || '').trim(),
+                    guruTidakHadir: guruTidakHadir,
+                    guruGanti: guruGanti
+                });
+            });
+        });
+
+        return rows;
+    }
+
+    function sendNotificationToReliefTeachers() {
+        const statusBox = document.getElementById('notificationStatus');
+        const data = getReliefNotificationRows();
+
+        if (data.length === 0) {
+            alert('Tiada guru ganti yang perlu dihantar email. Sila Jana Cadangan Jadual dahulu dan pastikan status PERLU dihidupkan.');
+            return;
+        }
+
+        if (!confirm('Hantar email notifikasi kepada guru ganti untuk ' + data.length + ' slot?')) return;
+
+        const url = EMAIL_GURU_GANTI_WEB_APP_URL + '?data=' + encodeURIComponent(JSON.stringify(data));
+
+        if (statusBox) {
+            statusBox.style.display = 'block';
+            statusBox.style.background = '#eef6ff';
+            statusBox.style.color = '#075985';
+            statusBox.style.borderColor = '#bae6fd';
+            statusBox.innerHTML = '⏳ Menghantar arahan email guru ganti. Tab Apps Script akan dibuka.';
+        }
+
+        window.open(url, '_blank');
+
+        setTimeout(() => {
+            if (statusBox) {
+                statusBox.style.background = '#ecfdf5';
+                statusBox.style.color = '#065f46';
+                statusBox.style.borderColor = '#a7f3d0';
+                statusBox.innerHTML = '✅ Arahan email guru ganti telah dihantar. Sila semak Gmail guru dan tab JADUAL_GURU_GANTI.';
+            }
+        }, 1500);
+
+        alert('Arahan email guru ganti telah dihantar. Semak Gmail guru / Google Sheet JADUAL_GURU_GANTI.');
+    }
 
 
     // --- TELEGRAM NOTIFICATION ---
