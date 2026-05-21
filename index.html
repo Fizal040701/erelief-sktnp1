@@ -295,6 +295,7 @@
         <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-top: 1rem;">
             <button class="btn btn-primary" onclick="addAbsentee()">+ Tambah Ke Senarai</button>
             <button id="btnFetchOnline" class="btn btn-online" onclick="fetchOnlineData()">☁️ Ambil Data Online</button>
+            <button id="btnTelegram" class="btn" style="background:#229ED9;color:white;" onclick="sendTelegramNotification()">📲 Hantar Notifikasi Telegram</button>
         </div>
         <div id="onlineStatus" style="display:none; margin-top:0.8rem; padding:10px; border-radius:8px; background:#eef6ff; color:#075985; font-size:0.9rem; border:1px solid #bae6fd;"></div>
 
@@ -1675,6 +1676,65 @@ BIL,NAMA GURU,ANALISIS BILANGAN MENGAJAR,,,,,,
             };
             img.onerror = reject;
         });
+    }
+
+
+
+    // --- TELEGRAM NOTIFICATION ---
+    const TELEGRAM_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzm1PZhHRUdX6NcsU7hA_lUSIsfbzFhcXmpXG3x7LNgTI7SmxFq_m6pTSi55FKMC6An/exec";
+
+    async function sendTelegramNotification() {
+        const tarikh = document.getElementById('inputDate')?.value || "";
+        const hari = document.getElementById('inputDay')?.value || "";
+        const selectedTeacher = document.getElementById('inputTeacher')?.value || "";
+        const selectedReason = document.getElementById('inputReason')?.value || "";
+
+        let namaGuru = selectedTeacher;
+        let sebab = selectedReason;
+
+        if (typeof absentList !== 'undefined' && absentList.length > 0) {
+            namaGuru = absentList.map((item, index) => `${index + 1}. ${item.name}`).join("\n");
+            sebab = absentList.map((item, index) => `${index + 1}. ${item.reason || "-"}`).join("\n");
+        }
+
+        if (!tarikh) {
+            alert("Sila pilih tarikh dahulu.");
+            return;
+        }
+
+        if (!namaGuru) {
+            alert("Sila pilih guru atau tambah guru ke senarai dahulu.");
+            return;
+        }
+
+        const btn = document.getElementById('btnTelegram');
+        const originalText = btn ? btn.innerHTML : "";
+        if (btn) {
+            btn.innerHTML = "⏳ Menghantar Telegram...";
+            btn.disabled = true;
+        }
+
+        try {
+            await fetch(TELEGRAM_WEB_APP_URL, {
+                method: "POST",
+                mode: "no-cors",
+                body: JSON.stringify({
+                    tarikh: tarikh,
+                    hari: hari,
+                    namaGuru: namaGuru,
+                    sebab: sebab
+                })
+            });
+
+            alert("Notifikasi Telegram telah dihantar.");
+        } catch (error) {
+            alert("Ralat hantar Telegram: " + error.message);
+        } finally {
+            if (btn) {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
     }
 
     window.onload = init;
